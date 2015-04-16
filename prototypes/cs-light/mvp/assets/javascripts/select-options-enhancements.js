@@ -8,7 +8,7 @@ $(".multi-row-field").attr("rowspan", 2);
 
 $(".add-option-button").click( function() {
     var option_row_to_insert = $("#select_options_row tr").clone();
-    $(this).closest("tr").before(option_row_to_insert);
+    $("form tbody tr:last-child").after(option_row_to_insert);
 
     var newMultiRowValue = parseInt($(".multi-row-field").attr("rowspan"), 10) + 1;
     $(".multi-row-field").attr("rowspan", newMultiRowValue);
