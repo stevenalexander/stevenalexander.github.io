@@ -1,0 +1,62 @@
+---
+layout: post
+title: Microsoft Web Deploy Tool - Sample solution for msbuild single build multiple
+  environment deployment with environmental configuration
+date: 2011-06-23 07:50:00.000000000 +01:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- aspmvc
+- bric
+- configuration
+- deployment
+- msbuild
+- net
+meta:
+  _original_post_id: ''
+  _original_import_author: Steven A
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+excerpt: Following on from my earlier post about Microsoft Web Deploy tool I've put
+  together a sample solution with MSBuild scripts to build and deploy a web application
+  and a WCF service with environmental configuration, so with a single build you can
+  dep...
+---
+<p>Following on from my earlier post about <a href="http://stevenalexander.posterous.com/using-net-web-deployment-packages-for-single">Microsoft Web Deploy tool</a>&nbsp;I've put together a sample solution with MSBuild scripts to build and deploy a web application and a WCF service with environmental configuration, so with a single build you can deploy to multiple environments with the right configuration and no manual config changes.</p>
+<p>
+<p>Previously I couldn&rsquo;t figure out how to get the environment configuration to work for WCF endpoints and certain settings, but now I&rsquo;ve got that figured out I would recommend using this over the alternatives (xml transformations, build script copying).</p>
+<p>&nbsp;</p>
+<p>Pre-requisites:</p>
+<ul>
+<li>VS 2010 (or latest MSBuild if deploying on server)</li>
+<li>Web Deploy tool (included in VS 2010, only needed for server deploy)</li>
+<li>MVC3 (included in VS 2010, only needed for server deploy)</li>
+</ul>
+<p>&nbsp;</p>
+<p>The project consists of a Model class library, WCF service and an MVC3 application. The Model has a service reference to the WCF service and a custom settings file, the MVC application references the Model, both the WCF service and MVC application have environment configuration, like appsettings keys, settings sections, endpoint addresses and connectionstrings (in dbproperties.config). The master build script builds the solution and creates the web deployment packages, the Deployer script checks/creates the target host web site in IIS, substitutes the correct environment configuration into the package and deploys.</p>
+<p>
+<div class="p_embed p_image_embed"><a href="http://getfile3.posterous.com/getfile/files.posterous.com/temp-2011-06-23/gxFGiwIfyGxzdCFrizCsAffuujEnJwdymefmDoseDrtkyJdGvnnqgGHnnnmo/web.config.png.scaled1000.png"><img alt="Web" height="60" src="{{ site.baseurl }}/assets/web.config.png.scaled500.png" width="500" /></a></div></p>
+<p>Important files in the project are:</p>
+<ul>
+<li>Parameters.xml &ndash; In both web applications, contains the list of environment configuration settings for each app, with a description and instructions for the deployer on how to find/set them (either xpath or simple match substitution)</li>
+<li>SrcConfig{env}Kainos.WebBRIC.{app}.SetParameters.xml &ndash; Environmental settings used in deployment for app, contains the value to be used for each parameter in Parameters.xml and the target Virtual Directory (deployer will create if does not exist)</li>
+<li>Master.build &ndash; Builds the deployment packages (ln38)</li>
+<li>Deployer.build &ndash; Checks/Creates host website (using MSBuild Extension Package tasks) for IIS6 or IIS7, copies target environment configuration to package and deploys</li>
+</ul>
+<p>
+<div class="p_embed p_image_embed"><a href="http://stevenwilliamalexander.files.wordpress.com/2011/06/parameters-xml-scaled1000.png"><img alt="Parameters" height="103" src="{{ site.baseurl }}/assets/parameters-xml-scaled1000.png?w=300" width="500" /></a></div>
+<div class="p_embed p_image_embed"><a href="http://stevenwilliamalexander.files.wordpress.com/2011/06/setparameters-xml-scaled1000.png"><img alt="Setparameters" height="89" src="{{ site.baseurl }}/assets/setparameters-xml-scaled1000.png?w=300" width="500" /></a></div></p>
+<p>You can use the MSBuild Extension Package tasks to do a lot more than I&rsquo;ve got in the sample, create host headers/app pools and setup the website correctly, but I think in the majority of cases the web site will already exist with correct configuration so this may be redundant. One thing people using the deploy tool need to be aware of is it will delete all files/folders in the existing virtual directory folder which don&rsquo;t exist in the package, so they will need to backup any log files etc. if they want to keep them after a re-deployment.</p>
+<p>
+<div>Attached zipped solution embedded into word doc, as Posterous will not accept zips.</div></p>
+<p>
+<div class="p_embed p_file_embed"><a href="http://getfile9.posterous.com/getfile/files.posterous.com/temp-2011-06-23/HtIoJHzmiozaIAFfhqpJJIrDlDFheGmzJAuaqdkczzJswdFiDlmhaHvgjFeA/WebBRIC.doc" />
+<div class="p_icon"></div>
+<div class="p_text">WebBRIC.doc</div>
+</div></p>

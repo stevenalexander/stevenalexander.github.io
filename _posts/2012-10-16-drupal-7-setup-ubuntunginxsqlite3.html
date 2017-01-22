@@ -1,0 +1,94 @@
+---
+layout: post
+title: Drupal 7 - Setup Ubuntu/nginx/sqlite3
+date: 2012-10-16 12:41:00.000000000 +01:00
+type: post
+published: true
+status: publish
+categories:
+- Setup
+tags:
+- drupal
+- linux
+- nginx
+- sqlite
+- sqlite3
+- ubuntu
+meta:
+  _original_post_id: ''
+  _original_import_author: Steven A
+  _edit_last: '46212493'
+  _oembed_a237f2a48cd1d845ec1d63a721328599: "{{unknown}}"
+  _oembed_eed79dc0d1c8d990ec0a1a457b65e725: "{{unknown}}"
+  _oembed_4ff07d78863378dfc09f7352d99ff925: "{{unknown}}"
+  _oembed_682f1b77bbd071610862e4536bf03bdf: "{{unknown}}"
+  _oembed_233d62432be86aaa81f3558d3b738abd: "{{unknown}}"
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+excerpt: All commands as sudo (sudo su) unless otherwise stated. Install nginx apt-get
+  install nginx /etc/init.d/nginx start Install sqlite3 apt-get install sqlite3 libsqlite3-dev
+  Install php5 apt-get install php5-fpm vim /etc/nginx/sites-available/default...
+---
+<div><em>All commands as sudo (</em>sudo su<em>) unless otherwise stated.</em></div>
+<ol>
+<li><em>Install <a href="http://www.howtoforge.com/installing-nginx-with-php5-and-php-fpm-and-mysql-support-on-ubuntu-11.04">nginx </a></em>
+<ul>
+<li>apt-get install nginx</li>
+<li>/etc/init.d/nginx start</li>
+</ul>
+</li>
+<li><em>Install <a href="http://www.askyb.com/sqlite/installing-sqlite-in-ubuntu/">sqlite3</a></em>
+<ul>
+<li>apt-get install sqlite3 libsqlite3-dev</li>
+</ul>
+</li>
+<li><em>Install <a href="http://www.howtoforge.com/installing-nginx-with-php5-and-php-fpm-and-mysql-support-on-ubuntu-11.04">php5 </a></em>
+<ul>
+<li>apt-get install php5-fpm</li>
+<li>
+<p>vim /etc/nginx/sites-available/default <em>(update for php conf)</em></p>
+<p>server {<br /> listen 80; ## listen for ipv4; this line is default and implied<br /> listen [::]:80 default ipv6only=on; ## listen for ipv6</p>
+<p>  root /usr/share/nginx/www;<br /> index index.php index.html index.htm;</p>
+<p>  server_name _;</p>
+<p>  location / {<br /> # First attempt to serve request as file, then<br /> # as directory, then fall back to index.html<br /> try_files $uri $uri/ /index.html;<br /> # Uncomment to enable naxsi on this location<br /> # include /etc/nginx/naxsi.rules<br /> }</p>
+<p>  location /doc/ {<br /> alias /usr/share/doc/;<br /> autoindex on;<br /> allow 127.0.0.1;<br /> deny all;<br /> }</p>
+<p>  # Only for nginx-naxsi : process denied requests<br /> #location /RequestDenied {<br /> # For example, return an error code<br /> #return 418;<br /> #}</p>
+<p>  #error_page 404 /404.html;</p>
+<p>  # redirect server error pages to the static page /50x.html<br /> #<br /> error_page 500 502 503 504 /50x.html;<br /> location = /50x.html {<br /> root /usr/share/nginx/www;<br /> }</p>
+<p>  # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000<br /> #<br /> location ~ .php$ {<br /> fastcgi_split_path_info ^(.+.php)(/.+)$;<br /> fastcgi_pass 127.0.0.1:9000;<br /> fastcgi_index index.php;<br /> include fastcgi_params;<br /> }</p>
+<p>  # deny access to .htaccess files, if Apache's document root<br /> # concurs with nginx's one<br /> #<br /> #location ~ /.ht {<br /> # deny all;<br /> #}<br /> }</p>
+</li>
+<li>/etc/init.d/nginx restart</li>
+<li><em>Test with info.php</em> (&lt;?php&nbsp;phpinfo();&nbsp;?&gt;)</li>
+<li><em>Install php extensions for db and gd (needed for drupal)</em>
+<ul>
+<li>apt-get install php5-gd</li>
+<li>apt-get install php5-sqlite</li>
+<li>/etc/init.d/php5-fpm restart</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><em>Install <a href="http://www.howtoforge.com/running-drupal-7.7-on-nginx-lemp-on-debian-squeeze-ubuntu-11.04">drupal</a></em>
+<ul>
+<li>apt-get install php-apc</li>
+<li>/etc/init.d/php5-fpm restart</li>
+<li>mkdir -p /var/www/drupal/web</li>
+<li>wget <a href="http://ftp.drupal.org/files/projects/drupal-7.x.tar.gz">http://ftp.drupal.org/files/projects/drupal-7.x.tar.gz</a></li>
+<li>tar xvfz drupal-7.x.tar.gz</li>
+<li>cd drupal-7.x/</li>
+<li>mv * /var/www/drupal/web/</li>
+<li>chown -R www-data:www-data /var/www/drupal/web <em>(gives nginx user perms to dir)</em></li>
+<li>vim /etc/nginx/sites-available/drupal
+<p>server {<br /> listen 80;<br /> server_name example.com;<br /> root /var/www/drupal/web;<br /> index index.php index.html;<br /> location = /favicon.ico {<br /> log_not_found off;<br /> access_log off;<br /> }<br /> location = /robots.txt {<br /> allow all;<br /> log_not_found off;<br /> access_log off;<br /> }<br /> # Make sure files with the following extensions do not get loaded by nginx because nginx would display the source code, and these files can contain PASSWORDS!<br /> location ~* .(engine|inc|info|install|make|module|profile|test|po|sh|.*sql|theme|tpl(.php)?|xtmpl)$|^(..*|Entries.*|Repository|Root|Tag|Template)$|.php_ {<br /> deny all;<br /> }<br /> # Deny all attempts to access hidden files such as .htaccess, .htpasswd, .DS_Store (Mac).<br /> location ~ /. {<br /> deny all;<br /> access_log off;<br /> log_not_found off;<br /> }<br /> location / {<br /> try_files $uri $uri/ /index.php?$args;<br /> }<br /> location ~* .(jpg|jpeg|png|gif|css|js|ico)$ {<br /> expires max;<br /> log_not_found off;<br /> }<br /> location ~ .php$ {<br /> try_files $uri =404;<br /> include /etc/nginx/fastcgi_params;<br /> fastcgi_pass 127.0.0.1:9000;<br /> fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;<br /> }<br /> }</p>
+</li>
+<li>ln -s /etc/nginx/sites-available/drupal&nbsp;/etc/nginx/sites-enabled/drupal <em>(symlink)</em></li>
+<li><em><span style="font-style:normal;">/etc/init.d/nginx restart</span></em></li>
+<li><em>Visit drupal url and <a href="http://www.howtoforge.com/running-drupal-7.7-on-nginx-lemp-on-debian-squeeze-ubuntu-11.04-p2">complete</a> site config</em></li>
+</ul>
+</li>
+</ol>

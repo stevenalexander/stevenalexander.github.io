@@ -1,0 +1,85 @@
+---
+layout: post
+title: Amazon EC2 - Mongo Play Scala Instance setup guide
+date: 2012-06-10 13:36:00.000000000 +01:00
+type: post
+published: true
+status: publish
+categories:
+- jvm
+- Setup
+tags:
+- amazonec2
+- cloud
+- ec2
+- mongo
+- mongodb
+- play
+- scala
+- ubuntu
+meta:
+  _original_post_id: ''
+  _original_import_author: Steven A
+  _edit_last: '46212493'
+  _oembed_60bb9d11b6b1a94fe68d3c222a76aeeb: "{{unknown}}"
+  _oembed_f7dbe2f4d26dad23fe8e480eb3b1e5df: "{{unknown}}"
+  _oembed_cd171ddfeebca87c6a415c4f886166e3: "{{unknown}}"
+  _oembed_2bb3629d47825f680d51158d1ba95881: "{{unknown}}"
+  _oembed_52dc13c5d2d2704f3398e0dba36abf05: "{{unknown}}"
+  _oembed_0840309de7c986f2ec2386d5a87b62c6: "{{unknown}}"
+  _oembed_b2dcc03cd6f9e63d4352304b3c49696a: "{{unknown}}"
+  _oembed_18a5dad75388f9cad03bb10f0f1fd755: "{{unknown}}"
+  _oembed_4d87e3e86eda128925e263626eff0680: "{{unknown}}"
+  _wpas_skip_facebook: '1'
+  _wpas_skip_google_plus: '1'
+  _wpas_skip_twitter: '1'
+  _wpas_skip_linkedin: '1'
+  _wpas_skip_tumblr: '1'
+  _wpas_skip_path: '1'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+excerpt: Updated to use SBT for installing required libs for Scala/Play, which cuts
+  down required steps. This is a quick guide on how to create an EC2 instance with
+  Mongo DB and Play/Scala, allowing you to quickly spin up a server and put your application
+  ...
+---
+<p>EDIT: These instructions are now out of date as the SBT and Play dependences now need to be installed via the <a href="http://typesafe.com/community/core-tools/activator-and-sbt">Typesafe Activator</a>, see the <a href="https://www.playframework.com/documentation">Play Framework documentation</a> for details.</p>
+<p><strong style="font-weight:normal;"><span style="font-size:15px;font-family:Arial;vertical-align:baseline;">This is a quick guide on how to create an EC2 instance with Mongo DB and Play/Scala, allowing you to quickly spin up a server and put your application online in half an hour or less. You can do all this with the </span><a style="font-family:Times;font-size:medium;" href="http://aws.amazon.com/free/"><span style="font-size:15px;font-family:Arial;color:#1155cc;vertical-align:baseline;">AWS Free usage tier</span></a><span style="font-size:15px;font-family:Arial;vertical-align:baseline;">, so it costs nothing.</span><br />
+</strong></p>
+<p><strong style="font-weight:normal;"><span style="font-size:15px;font-family:Arial;vertical-align:baseline;">Chosen Play/Scala cause it’s what I’m working with now, but the same advantages apply to any other open source frameworks and dbs. Play/Scala is insanely easy and quick to use, see </span><a style="font-family:Times;font-size:medium;" href="http://t.co/AYNSdMhJ"><span style="font-size:15px;font-family:Arial;color:#1155cc;vertical-align:baseline;">James Hughes great starter guide for info</span></a><span style="font-size:15px;font-family:Arial;vertical-align:baseline;">. All the info below was available online but not in one place or covering some of the tricks that held me up as a newbie.</span></strong></p>
+<p>1. Log into AWS EC2 and create Instance</p>
+<p>- Ubuntu Server Instance (12.04 used for this example)</p>
+<p>- Security group open SSH - 22, HTTP -  HTTPS - 443, TCP - 80 (add more if necessary), TCP - 28017 (mongo)</p>
+<p>2. SSH into server (see AWS Management Console -&gt; My Instances -&gt; Instance Actions -&gt; Connect, replace “root” user with “ubuntu” in connection string)</p>
+<p>3. Install Mongo</p>
+<p>- <a href="http://docs.mongodb.org/manual/tutorial/install-mongodb-on-debian-or-ubuntu-linux/">http://docs.mongodb.org/manual/tutorial/install-mongodb-on-debian-or-ubuntu-l...</a></p>
+<p>- <a href="http://amath.colorado.edu/computing/unix/vi/">http://amath.colorado.edu/computing/unix/vi/</a> - using vi to edit the list file</p>
+<p>4. Install OpenJDK for Play/Scala (Play 2.0 requires JDK 6+)</p>
+<p>- <a href="http://www.wikihow.com/Install-Java-on-Linux">http://www.wikihow.com/Install-Java-on-Linux</a> - see “Ubuntu method using a Console”</p>
+<p>5. Install SBT</p>
+<p>- <a href="https://github.com/harrah/xsbt/wiki/Getting-Started-Setup">https://github.com/harrah/xsbt/wiki/Getting-Started-Setup</a> (your play app will require <a style="margin:0;padding:0;border:0;color:#4183c4;font-family:Helvetica, arial, freesans, clean, sans-serif;font-size:14px;line-height:22px;" href="http://typesafe.artifactoryonline.com/typesafe/ivy-releases/org.scala-sbt/sbt-launch/0.11.3-2/sbt-launch.jar" rel="nofollow">sbt-launch.jar</a> and an sbt script)</p>
+<p>6. Install GIT (optional, but makes life much easier when retrieving/updating your app)</p>
+<p>- sudo apt-get install git-core</p>
+<p>- git clone <a href="https://USERNAME">https://USERNAME</a>@github.com/USER/PROJECT.git (clone repo from git repo, will prompt for password)</p>
+<p>- git pull (use later to get latest version)</p>
+<p>7. Run SBT to download required libs and compile</p>
+<p>- ./sbt (in project directory, it will download all scala/play libraries required, may take a while)</p>
+<p>- start 80 (need to run as root to use port 80 or whatever port you want)</p>
+<p>- Browse to ec2-999-999-999-999.compute-9.amazonaws.com:PORT to view your application (get AWS public dns from AWS EC2 console)</p>
+<div><span style="font-family:Arial;"><span style="font-size:15px;"><br />
+</span></span><span style="font-size:15px;font-family:Arial;vertical-align:baseline;">That’s it. At any point in the process you can create a snapshot of your image which you can use to generate a template image for future instances, so you don’t have to do the steps again.</span><br />
+<span style="font-size:15px;font-family:Arial;vertical-align:baseline;">You can also use the AWS command line tools to do all of the above by script, allowing you to spin up templated images, deploy latest code and start up applications, all completely automated. You can use this to build a full Dev/CI environment all with zero on site infrastructure. </span><br />
+<span style="font-size:15px;font-family:Arial;vertical-align:baseline;">Extra Links:</span></div>
+<div>
+<ul style="font-family:Times;font-size:medium;margin-top:0;margin-bottom:0;">
+<li style="font-size:15px;font-family:Arial;vertical-align:baseline;"><span style="vertical-align:baseline;">James Hughes Mongo/Scala Quickstart - </span><a href="http://yobriefca.se/blog/2012/05/08/starter-for-10-scala/"><span style="color:#1155cc;vertical-align:baseline;">http://yobriefca.se/blog/2012/05/08/starter-for-10-scala/</span></a></li>
+<li style="font-size:15px;font-family:Arial;vertical-align:baseline;"><span style="vertical-align:baseline;">Amazon AWS - </span><a href="http://aws.amazon.com/"><span style="color:#1155cc;vertical-align:baseline;">http://aws.amazon.com/</span></a></li>
+<li style="font-size:15px;font-family:Arial;vertical-align:baseline;"><span style="vertical-align:baseline;">Amazon EC2 Command line tools - </span><a href="http://aws.amazon.com/developertools/351"><span style="color:#1155cc;vertical-align:baseline;">http://aws.amazon.com/developertools/351</span></a></li>
+<li style="font-size:15px;font-family:Arial;vertical-align:baseline;"><span style="vertical-align:baseline;">Using VI to edit stuff while SSH’ed into instances for config editing - </span><a href="http://amath.colorado.edu/computing/unix/vi/"><span style="color:#1155cc;vertical-align:baseline;">http://amath.colorado.edu/computing/unix/vi/</span></a></li>
+<li style="font-size:15px;font-family:Arial;vertical-align:baseline;"><span style="vertical-align:baseline;">Automate getting Public IPs - </span><a href="http://www.ducea.com/2009/06/01/howto-update-dns-hostnames-automatically-for-your-amazon-ec2-instances/"><span style="color:#1155cc;vertical-align:baseline;">http://www.ducea.com/2009/06/01/howto-update-dns-hostnames-automatically-for-your-amazon-ec2-instances/</span></a></li>
+</ul>
+</div>

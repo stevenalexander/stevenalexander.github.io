@@ -1,0 +1,69 @@
+---
+layout: post
+title: Using Vagrant and Puppet to provision an Nginx AngularJS site
+date: 2014-11-12 10:12:32.000000000 +00:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- angularjs
+- nginx
+- provision
+- puppet
+- vagrant
+meta:
+  _publicize_pending: '1'
+  _rest_api_published: '1'
+  _rest_api_client_id: "-1"
+  _wpas_skip_facebook: '1'
+  _wpas_skip_google_plus: '1'
+  _wpas_skip_twitter: '1'
+  _wpas_skip_linkedin: '1'
+  _wpas_skip_tumblr: '1'
+  _wpas_skip_path: '1'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p>I made a simple example showing how to provision a Ubuntu 14.04 Nginx web server hosting a sample AngularJS application VM using Vagrant and Puppet.</p>
+<p><a href="https://github.com/stevenalexander/vagrant-ubuntu-14-nginx-angularjs">Source here.</a></p>
+<p>Using this to learn more about Puppet and as the frontend part of another example for Microservice Authentication and Authorisation.</p>
+<p>Created and tested on Mac OSX 10.9.5, Vagrant 1.6.3, VirtualBox 4.3.6, otherwise using versions/boxes given in VagrantFile and Puppet config.</p>
+<h2><a id="user-content-start" class="anchor" href="https://github.com/stevenalexander/vagrant-ubuntu-14-nginx-angularjs#start"></a>Start</h2>
+<pre><code># Clone
+git clone git@github.com:stevenalexander/vagrant-ubuntu-14-nginx-angularjs.git
+
+# Get JS and CSS library resources (AngularJS and Bootstrap) for the site using npm and bower
+./update_dependencies.sh
+# Starts up VM and runs puppet to setup, downloading box if necessary
+vagrant up
+# On completion nginx should be running and the AngularJS site accessible from host at http://192.168.33.10
+</code></pre>
+<h2><a id="user-content-angularjs" class="anchor" href="https://github.com/stevenalexander/vagrant-ubuntu-14-nginx-angularjs#angularjs"></a>AngularJS</h2>
+<p>The AngularJS site lives in the site_content puppet module and can be run separately using npm and tested.</p>
+<pre><code># run local
+./run_local.sh
+
+# test
+./run_unit_tests.sh
+
+# e2e protractor tests
+./run_e2e_tests.sh
+</code></pre>
+<h2><a id="user-content-details" class="anchor" href="https://github.com/stevenalexander/vagrant-ubuntu-14-nginx-angularjs#details"></a>Details</h2>
+<p>Used <a href="https://forge.puppetlabs.com/jfryman/nginx">jfryman-nginx</a> v0.1.1 module to puppetize nginx, added using:</p>
+<pre><code>puppet module install jfryman-nginx  --modulepath puppet/modules
+</code></pre>
+<p>I created a custom puppet module site_content (puppet/modules/site_content) which ensures /var/www exists and deploys the AngularJS site.</p>
+<h2><a id="user-content-notes" class="anchor" href="https://github.com/stevenalexander/vagrant-ubuntu-14-nginx-angularjs#notes"></a>Notes</h2>
+<p>This is a bare bones example and does not include any security or configuration best practise, so do not use in production.</p>
+<p>Any change to the puppet files requires you to run 'vagrant provision' to update.</p>
+<h2><a id="user-content-possible-improvements" class="anchor" href="https://github.com/stevenalexander/vagrant-ubuntu-14-nginx-angularjs#possible-improvements"></a>Possible improvements</h2>
+<ul class="task-list">
+<li>Move the site content under src directory and build RPM with content instead of using explicit puppet module, that way site can be versioned and installed as RPM directly</li>
+<li>HTTPS</li>
+</ul>

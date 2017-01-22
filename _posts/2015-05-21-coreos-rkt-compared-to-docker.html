@@ -1,0 +1,45 @@
+---
+layout: post
+title: CoreOS Rkt compared to Docker
+date: 2015-05-21 12:11:11.000000000 +01:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- containerisation
+- containers
+- coreos
+- docker
+- rkt
+- rocket
+- virtualisation
+meta:
+  _publicize_pending: '1'
+  _rest_api_published: '1'
+  _rest_api_client_id: "-1"
+  _publicize_job_id: '10849558905'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p>Looking at <a href="https://github.com/coreos/rkt">CoreOS Rkt</a> to get a comparison with Docker, as quite a few of the experienced operations developers I've spoke to about containers have raised concerns with Docker and prefer the pure standardised containers appoach that <a href="https://coreos.com/blog/rocket/">Rkt (Rocket)</a> is aimed at compared to Dockers propriety format and platform.</p>
+<h2>Comparison with Docker</h2>
+<p>Rkt is purely concerned with creating and running containers in isolation securely, it is not attempting to become a wider containerisation platform like Docker. It's an implementation of the <a href="https://github.com/appc/spec/">App Container (appc)</a> specification and uses <a href="https://github.com/coreos/rkt/blob/master/Documentation/app-container.md">ACI container images</a> from the specification. Rkt can run other types of containers such as Docker images. As of writing it is v0.5.5 and is not recommended for production use.</p>
+<p>Docker (as of v1.5.0) does not attempt to implement the appc specification and does not support ACI images. This makes Docker images a open but proprietary format, so users require third party tools to generate ACI images from Docker images to allow their use in other container tools. It offers a large amount of tooling that Rkt cannot offer, such as a public repository for images and tools for integrating with hosting providers. For developers Docker is a easier to use, as there are tools (<a href="http://boot2docker.io/">boot2docker</a> on mac etc.) for using Docker directly from the commandline on the host machine, while with Rkt you need to ssh onto a VM before running any Rkt commands. Docker documentation is better, as is the range of images available.</p>
+<p>Rkt is thought as more secure, as it runs daemonless while <a href="http://blog.docker.com/2013/08/containers-docker-how-secure-are-they/">Docker needs a daemon</a> running as root to manage containers and allocate resources. Rkt also uses a trusted key model for verifying that an image you have downloaded is what you expect and has not been altered by someone.</p>
+<h2>Conclusion</h2>
+<p>In practise creating and using Rkt containers is very similar to Docker, simple commandline interface using a JSON container definition file that is like a Dockerfile. The lack of documentation is a problem, as it's hard to find examples of using Rkt or guides on best practises. Kubernetes has recently announced supporting Rkt for managementing containers instead of Docker, which is great as it gives a choice of what container format/tools you can use.</p>
+<p>Rkt is quite immature compared to Docker, right now it would be irresponsible to use it in production. When it reaches v1 and has been used in serious production environments it could well be a better choice than Docker due to it's strong focus on standards and security. This may be a deciding factor between the two when containerisation becomes more widespread and hosting providers begin offering virtualisation via containers rather than Virtual Machines, to take advantage of the cost/density benefits.</p>
+<p>Docker currently has a big advantage in ease of use, documentation and the platform they have made. This makes Docker a much better option to learn about containerisation and try it out. Also many cloud hosting providers are falling over themselves to offer containerisation and right now Docker is the only option, this gives it a huge lead over the alternatives. As there are tools to convert your Docker images into ACI format it's not a huge lock-in risk to start developing and deploying containerised applications in Docker, as it will be possible to change your mind later.</p>
+<p>For developers, I'd recommend you start with Docker to get your head around the containerisation concepts as the documentation is great. But you should be aware that Docker is not the only option. Containerisation has been around for ages and Docker seems to be trying to make itself a way to bridge the gap between IaaS and PaaS, abstracting away important details that as a developer you need to be aware of to make production ready code.</p>
+<h2>Useful links</h2>
+<ul>
+<li><a href="https://github.com/coreos/rkt">Rkt</a></li>
+<li><a href="https://www.docker.com/">Docker</a></li>
+<li><a href="https://github.com/appc/spec/">App Container (appc)</a></li>
+<li><a href="http://blog.kismatic.com/running-rkt-on-kubernetes">Useful blog post for getting started with Rkt</a></li>
+</ul>

@@ -1,0 +1,37 @@
+---
+layout: post
+title: Unicorn - "'raise_if_conflicts' can't activate rack" error
+date: 2013-02-13 11:13:00.000000000 +00:00
+type: post
+published: true
+status: publish
+categories:
+- ruby
+- Setup
+tags:
+- exception
+- rack
+- ruby
+- unicorn
+meta:
+  _original_post_id: ''
+  _original_import_author: Steven A
+  _edit_last: '46212493'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+excerpt: 'If you''ve been trying to start a Unicorn app and seeing something like
+  the following error: "''raise_if_conflicts'': can''t activate rack-1.4.1, already
+  activated rack-1.5" It''s down the versions of rack gem which you installed. In
+  your applications ...'
+---
+<p>If you've been trying to start a Unicorn app and seeing something like the following error:</p>
+<p>"'raise_if_conflicts': can't activate rack-1.4.1, already activated rack-1.5"</p>
+<p>&nbsp;</p>
+<p>It's down the versions of rack gem which you installed. In your applications gemfile you should specify the version of rack you want to use, e.g.</p>
+<p>gem "rack", "1.4.1"</p>
+<p>Run "bundle update rack" and see if that fixes the issue.</p>
+<p>If not, run "gem uninstall rack", you may see that you have two versions of rack installed, uninstall the wrong one and try again.</p>

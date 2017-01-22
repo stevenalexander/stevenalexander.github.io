@@ -1,0 +1,38 @@
+---
+layout: post
+title: ASP.MVC - Custom validation without using Data Annotations
+date: 2011-03-08 13:49:00.000000000 +00:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- aspmvc
+- dataannotation
+- net
+- validation
+meta:
+  _original_post_id: ''
+  _original_import_author: Steven A
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+excerpt: This is intended as one of a series of posts on ASP.MVC 3 (Razor) about tips
+  and traps as I learn, feel free to comment with advice or anything to help me or
+  others. All the ASP.MVC tutorials I've seen show validation being performed by using
+  Data...
+---
+<p>This is intended as one of a series of posts on ASP.MVC 3 (Razor) about  tips and traps as I learn, feel free to comment with advice or anything  to help me or others.</p>
+<p>All the ASP.MVC tutorials I've seen show validation being performed by using Data Annotations on the Model properties and calling ModelState.IsValid in the controller. This is great for normal validation but has some drawbacks when you need to do some complicated stuff.</p>
+<p>I had a screen containing a radio button list, clicking a radio button hide or displayed certain fields, changing the mandatory fields for the screen. This made using the base MVC 3 Data Annotations not an option, as marking any of the fields as required would cause them to always be required regardless of the selected radio button. If this was something I would reuse I would probably create a custom validation attribute (<a href="http://blogs.msdn.com/b/simonince/archive/2010/06/04/conditional-validation-in-mvc.aspx" target="_blank">link </a>on how to do that) but it was only needed for that screen and quite specific.</p>
+<p>Instead I used the ModelState.AddModelError, which allowed me to put my custom validation in the controller:</p>
+<p>
+<div class="p_embed p_image_embed"><a href="http://getfile7.posterous.com/getfile/files.posterous.com/temp-2011-03-08/jbkrcilEIeBobsyssFDIJqbosArbpyvBHFdAGmjBnzwfDaGBrfryilBJBjsC/Capture.PNG.scaled1000.png"><img alt="Capture" height="95" src="{{ site.baseurl }}/assets/Capture.PNG.scaled500.png" width="500" /></a></div>
+<p>Some points to note:</p>
+<ul>
+<li>The field name you supply in AddModelError is used by your "ValidationMessageFor" tags in the view, so will affect how control styles. Use a field name for a button/hidden field if you don't want validation styles applied to a specific field control for the error.</li>
+<li>If the field uses DataType validation (e.g. is an int/DateTime in model) and the value entered was invalid for the DataType using AddModelError will cause the DataType validation error message to display as well as your custom message.</li>
+</ul>

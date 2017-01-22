@@ -1,0 +1,29 @@
+---
+layout: post
+title: ASP.MVC - HandleError attribute not working for IE when page is <512 bytes
+date: 2011-04-18 14:38:00.000000000 +01:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- aspmvc
+- errorview
+- handleerror
+- ie
+meta:
+  _original_post_id: ''
+  _original_import_author: Steven A
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+excerpt: Banged my head against this for a bit while trying to get error handling
+  working correctly on a sample app. In MVC you no longer need to add the "[HandleError]"
+  attribute to controller, it is automatically used if CustomErrors section is in
+  the we...
+---
+<p>Banged my head against this for a bit while trying to get error handling working correctly on a sample app. In MVC you no longer need to add the "[HandleError]" attribute to controller, it is automatically used if CustomErrors section is in the web.config and mode is "On"/"RemoteOnly". This should mean that if one of your controller throws an error the web app will display an error view (by default "~/Views/Shared/Error.cshtml") which uses the model object "HandleErrorInfo", so you can display a nice error screen.</p>
+<p>However I couldn't get this working locally on my sample application, even when using other peoples example code. After a few searches I found a few people with the same issue and some suggestions to turn off an IE Advanced option "Show Friendly HTTP error messages". Turns out the error view works perfectly on other browsers, the problem was IE was ignoring it because it saw the response code was 500 and the page was less than 512 bytes (very simple sample) so it overrided the response and displayed its own page. The size won't be an issue on a proper error page, so it's not a big deal, just very very annoying.</p>

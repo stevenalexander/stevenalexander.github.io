@@ -1,0 +1,67 @@
+---
+layout: post
+title: Dropwizard Flash
+date: 2014-08-18 11:33:43.000000000 +01:00
+type: post
+published: true
+status: publish
+categories: []
+tags: []
+meta:
+  _wpas_skip_facebook: '1'
+  _wpas_skip_google_plus: '1'
+  _wpas_skip_twitter: '1'
+  _wpas_skip_linkedin: '1'
+  _wpas_skip_tumblr: '1'
+  _wpas_skip_path: '1'
+  _publicize_pending: '1'
+  _rest_api_published: '1'
+  _rest_api_client_id: "-1"
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p>I created a <a href="https://github.com/stevenalexander/dropwizard-flash">sample</a> Dropwizard application for displaying flash messages between requests using the new Dropwizard 7.1 flash functionality. Uses Mustache for views and Gradle for builds.</p>
+<p>Created this as an example as I saw the flash/session function was added in v7 but the Dropwizard documentation doesn't give any details about how to use it, just a small line in the release notes.</p>
+<p>Turns out it's quite easy, just:</p>
+<ul class="task-list">
+<li>Add the Dropwizard FlashProvider and the Jersey SessionHandler in your Application run method
+<pre><code>public class ExampleApplication extends Application&lt;ExampleConfiguration&gt; {
+    ...
+    @Override
+    public void run(ExampleConfiguration configuration, Environment environment) {
+        final UserResource userResource = new UserResource();
+
+        environment.jersey().register(userResource);
+
+        environment.jersey().register(FlashProvider.class);
+        environment.servlets().setSessionHandler(new SessionHandler());
+    }
+}
+</code></pre>
+</li>
+<li>Inject the flash object into your resource methods to get/set
+<pre><code>public class UserResource {
+
+    @GET
+    public UsersView getAll(@Session Flash&lt;String&gt; message){
+        String flashMessage = message.get().or("");
+        ...
+    }
+
+    @POST
+    @Path("/flash")
+    public  UsersView flash(@Session Flash&lt;String&gt; message) throws URISyntaxException {
+        message.set("Flash aaahhhh! He saved everyone of us!");
+        ...
+    }
+}
+</code></pre>
+</li>
+</ul>
+<p>If you get the error below it's because you forgot to add the FlashProvider/SessionHandler:</p>
+<pre><code>com.sun.jersey.spi.container.ContainerRequest: A message body reader for Java class io.dropwizard.jersey.sessions.Flash, and Java type io.dropwizard.jersey.sessions.Flash&lt;java.lang.String&gt;, and MIME media type application/octet-stream was not found.</code></pre>
+<p>Still have an issue with testing the resource, as I can't find a way to inject or mock the Jetty SessionHandler needed to inject the Flash into the resource methods while still using the views. Dropwizard wizard samples use either LowLevelAppDescriptor or ResourceTestRule to do either, but never both.</p>

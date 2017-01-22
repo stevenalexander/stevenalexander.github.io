@@ -1,0 +1,34 @@
+---
+layout: post
+title: Design for Devs - Change sequence diagrams
+date: 2016-04-29 15:05:39.000000000 +01:00
+type: post
+published: true
+status: publish
+categories:
+- design
+- Dev
+tags:
+- design
+- development
+- diagram
+meta:
+  _thumbnail_id: '613'
+  _rest_api_published: '1'
+  _rest_api_client_id: "-1"
+  _publicize_job_id: '22299622317'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p>I've been asked a few times by junior developers how to get started in designing code, as if it's some sort of art technique. In truth every developer is doing design, no one spontaneously writes complex formal logic. Most just do it in their head based on experience and patterns they've used before. For small well understood problems this is fine, but when you are dealing with larger or more complex changes doing a little design work up-front can really help clarify things and ultimately save time while giving a better solution.</p>
+<p>I'm writing this to document a simple type of design I've used on many projects, a change sequence diagram, one you can do quickly on paper or on a whiteboard in ten minutes and I've found to be very helpful in thinking about what changes are required, the size of the overall change and promoting re-use of existing code.</p>
+<p>Here's an example:</p>
+<p><img class="alignnone size-full wp-image-613" src="{{ site.baseurl }}/assets/change-sequence-diagram.jpg" alt="change-sequence-diagram" width="1405" height="1625" /><br />
+It's a pretty simple variation of a sequence diagram, where you show the sequence of events which should occur as a series of interactions between the involved people/components. It normally starts with person, like someone clicking a link on web page, then shows how the system responds. The change part is about highlighting what components in each part of the system need to change to handle the functionality, what parts need to be added/updated/removed.</p>
+<p>Doing this forces you to think up-front about what you will need to change and how the system will interact to get the end result. It ties the individual component changes to the overall user requirement, e.g. you're not just adding a new database column and view field, you're adding them so the user can see and update their middle name on the personal details screen. This helps you understand how the parts of your system interact and use consistent implementations and design patterns in your changes, plus identify the unit tests and test scenarios.</p>
+<p>When you are done, the number and type of changes shows the scale of the overall change, useful for estimates, and breaks it down into manageable chunks of work. You'll get the best results if you do it paired with someone or get someone else to review your design. Doing this checks that you aren't breaking existing patterns in the code or missing something that could increase or decrease the complexity. You can expand it to include alternate flows and consider NFR's for security and performance.</p>
+<p>Next time you're looking at a new requirement or user story give this a try, you'll be surprised how easy it is to do and what you'll get out of it.</p>

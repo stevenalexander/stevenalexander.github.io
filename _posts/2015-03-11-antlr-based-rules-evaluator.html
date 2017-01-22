@@ -1,0 +1,101 @@
+---
+layout: post
+title: ANTLR based rules evaluator
+date: 2015-03-11 21:42:25.000000000 +00:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- antlr
+- ANTLR4
+- java
+- JsonPath
+- rules
+- sbt
+meta:
+  _wpas_skip_facebook: '1'
+  _wpas_skip_google_plus: '1'
+  _wpas_skip_twitter: '1'
+  _wpas_skip_linkedin: '1'
+  _wpas_skip_tumblr: '1'
+  _wpas_skip_path: '1'
+  _publicize_pending: '1'
+  _rest_api_published: '1'
+  _rest_api_client_id: "-1"
+  _thumbnail_id: '431'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p><a href="https://stevenwilliamalexander.files.wordpress.com/2015/03/screen-shot-2015-03-12-at-09-30-47.png"><img class="alignnone size-medium wp-image-431" src="{{ site.baseurl }}/assets/screen-shot-2015-03-12-at-09-30-47.png?w=300" alt="ANTLR4 grammar" width="300" height="92" /></a></p>
+<p>While investigating how to handle complex business rules in a project a colleague of mine came up the idea for this and I created this <a href="https://github.com/stevenalexander/rules-evaluator" target="_blank">library</a> as a proof of concept.</p>
+<p>The problem its trying to solve is quite common:</p>
+<ul class="task-list">
+<li>An application needs to evaluate data against a large number of complex/simple business rules</li>
+<li>The business rules are mostly concerned with a limited set of values within a single business domain</li>
+<li>The business rules need to be maintained and are updated regularly (with mostly small changes)</li>
+<li>The users who define and maintain the rules are non-technical and cannot code to implement rule changes</li>
+</ul>
+<p>Normally a problem like this is solved by either custom code or adding a large Rules Engine product, but both of these have a number of downsides.</p>
+<p>Custom code disadvantages:</p>
+<ul class="task-list">
+<li>Requires custom code for each business rule</li>
+<li>Rules cannot be changed without code release</li>
+<li>Rules cannot be maintained by non-technical users</li>
+</ul>
+<p>Rules Engine disadvantages:</p>
+<ul class="task-list">
+<li>Requires installation and maintenance of a new complex product (e.g. Drools)</li>
+<li>Requires developer up-skilling to use correctly</li>
+<li>Rules cannot be maintained by non-technical users (in practise)</li>
+</ul>
+<p>Bad experiences in the past with large Rule Engine products discouraged us from using one, and in practise we would not be needing anything like the full set of features it provides. Custom code would quickly become a maintenance nightmare, and would add barriers between our users and the implementation.</p>
+<p>The rules themselves were normally defined in english in documents and spreadsheets, so why not use something that's closer to their "natural" state? The users aren't idiots, they use Excel formulas to calculate all this manually, why couldn't we find a compromise closer to what they understood?</p>
+<p>Enter <a href="http://www.antlr.org/">ANTLR</a>, an open source Java based language parser. It's used in a lot of places to convert things from one well defined language to another, such as in Hibernate to generate SQL from HQL. You can use it to define a grammar, generate parsers and apply them against text to validate it against the grammar and build a tree structure that matches the elements in your grammar.</p>
+<p>The idea was we could use ANTLR to define a limited domain English grammar for our business rules that covered everything we needed inside our small business domain. That way we could allow users to write rules in almost natural English that we could parse and convert to executable business rules in code. That way the users can define the rules close to their normal way and maintain them on the system when they need to be updated.</p>
+<p>e.g.</p>
+<p>In our grammar we define a specification, with a rule being one or more specifications, as something like:</p>
+<pre><code>value_expr 'equals' string_comparison_value # StringEqualsComparisonSpecificationExpression
+</code></pre>
+<p>So when ANTLR parses the string "status equals approved", it can identify:</p>
+<ul class="task-list">
+<li>"status" as the value_expr</li>
+<li>"approved" as the string_comparison_value</li>
+<li>The specification as type StringEqualsComparisonSpecificationExpression</li>
+</ul>
+<p>This is can be easily parsed and used to build a Rule expression out of Java objects that can be evaluated against a set of data (i.e. evaluating json data <code>{"status": "approved"}</code> gives true).</p>
+<p>The grammar can be made to parse complex statements, allowing definition of complex business rules out of a series of simple specifications in the grammar.</p>
+<p>e.g.</p>
+<pre><code>(applicationArea / totalAvailableArea * 100 ) greater than 50 and options contains 'GRASSLAND'
+</code></pre>
+<p>As the rules are simply strings, they can be persisted and edited using a CRUD UI, web based or otherwise. The UI can use knowledge of the grammar to aid users when editing rules, validating against the grammar, testing against known data and auto-completing for valid syntax. If necessary, rules can be versioned to maintain audit trails and published to control when they come into effect.</p>
+<p>This approach has it's own set of disadvantages:</p>
+<ul class="task-list">
+<li>Have to code business specific grammar and rule specification logic covering required rules</li>
+<li>Grammar cannot cover all possible scenarios without excessive code</li>
+<li>Requires users to learn the grammar and understand how it is applied to the data used in the system</li>
+</ul>
+<p>I believe this approach is a good fit for when the set of business rules you are dealing with is well known and applied to similar data sets, changes frequently in small repetitive ways and there's a requirement for users to be able to quickly test and apply changes. Giving the users who understand the rules the best the ability to directly edit and test gives them extremely useful functionality and avoids the need for defining Rule requirements documentation and long periods of testing for each time the rules are updated.</p>
+<h2><a id="user-content-implementation-details" class="anchor" href="https://github.com/stevenalexander/rules-evaluator#implementation-details"></a>Implementation details</h2>
+<p>I'd recommend reading up about <a href="http://www.antlr.org/">ANTLR</a> before driving into the code, as you need to understand the grammar and how it parses rules to understand how the tree builder constructs the expressions and applies data to it.</p>
+<p>ANTLR4 is included in the project via <a href="https://github.com/ihji/sbt-antlr4">sbt-antlr4</a>. The ANTLR grammar file is located at<code>src/main/antlr4/RuleSet.g4</code> and generated ANTLR classes based on that grammar are in<code>target/scala-2.11/classes/com/example/rules</code>. The generated parser is used in the <code>RuleSetCompiler</code>and a listener, <code>RuleSetTreeBuilder</code>, is attached to it to react to events when parsing Rules.</p>
+<p><code>RuleSetTreeBuilder</code> has a number of methods that are fired when the parser enters and exits identified tokens and labelled elements from the grammar, such as <code>enterRule_set</code> and<code>exitArithmeticExpressionPlus</code>. The logic inside these methods build the logical rule expressions that can be applied to the data. Classes for specifications are under the package<code>com.example.rules.grammar.specification</code>.</p>
+<p><a href="https://github.com/jayway/JsonPath">JsonPath</a>, a JSON implementation of XPath, is used to allow complex queries of the JSON for the cases when the data being evaluated isn't simple.</p>
+<p>e.g.</p>
+<pre><code>$.options[?(@.code=='G1')].area equals 3
+SUM($.options[*].area) greater than 4
+</code></pre>
+<p>The grammar can be expanded to include specific business evaluations, rather than generic operations, based on knowledge of business domain and data. This allows the grammar to be more english readable instead of generic formulas. In the same way custom expressions to extract or process the data, e.g. <code>GRASS options area</code> instead of <code>$.options[?(@.code=='G1' || @.code=='G2')].area</code>.</p>
+<h2><a id="user-content-useful-links" class="anchor" href="https://github.com/stevenalexander/rules-evaluator#useful-links"></a>Useful Links</h2>
+<ul class="task-list">
+<li><a href="https://github.com/stevenalexander/rules-evaluator" target="_blank">Source</a></li>
+<li><a href="http://www.antlr.org/">ANTLR4 site</a></li>
+<li><a href="https://pragprog.com/book/tpantlr2/the-definitive-antlr-4-reference">ANTLR4 book</a></li>
+<li><a href="https://github.com/ivanyu/logical-rules-parser-antlr">Mathematical calculation example</a></li>
+<li><a href="https://github.com/bkiers/rrd-antlr4">Generate grammar diagrams</a></li>
+<li><a href="https://github.com/heatherjc07/business-rules">Basic evaluator example</a></li>
+</ul>

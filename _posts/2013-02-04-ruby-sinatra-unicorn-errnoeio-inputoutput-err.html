@@ -1,0 +1,40 @@
+---
+layout: post
+title: Ruby Sinatra Unicorn - Errno::EIO Input/output error
+date: 2013-02-04 09:37:00.000000000 +00:00
+type: post
+published: true
+status: publish
+categories:
+- ruby
+- Setup
+tags:
+- error
+- ruby
+- sinatra
+- stderr
+- stdout
+- unicorn
+meta:
+  _original_post_id: ''
+  _original_import_author: Steven A
+  _edit_last: '46212493'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+excerpt: This has caught me out twice now, so typing it up to remember. By default
+  Unicorn outputs stderr/stdout to terminal, which is great if you have one running,
+  but if you don't (i.e. you logged off) you get a massive error screen were your
+  app was "E...
+---
+<p>This has caught me out twice now, so typing it up to remember. By default Unicorn outputs&nbsp;<span>stderr/stdout to terminal, which is great if you have one running, but if you don't (i.e. you logged off) you get a massive error screen were your app was "Errno::EIO Input/output error" in "lint.rb" or something similar.</span></p>
+<p><span>To fix this just add the following lines to your unicorn.conf file you create for your application, which redirect the output to log files instead:</span></p>
+<p>
+<div class="CodeRay">
+<div class="code">
+<pre># By default, the Unicorn logger will write to stderr.# Additionally, some applications/frameworks log to stderr or stdout,# So prevent them from going to /dev/null when daemonized here:stderr_path &quot;/srv/www/logs/unicorn.stderr.log&quot;stdout_path &quot;/srv/www/logs/unicorn.stdout.log&quot;</pre>
+</div>
+</div>

@@ -1,0 +1,35 @@
+---
+layout: post
+title: Using Generic Types in iBatis.net maps
+date: 2011-02-17 12:40:00.000000000 +00:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- database
+- ibatis
+- net
+meta:
+  _original_post_id: ''
+  _original_import_author: Steven A
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+excerpt: Recently found how to use Generics inside iBatis maps, which avoids the need
+  for a lot of pointless criteria/data object classes and structs. The trick is how
+  to reference the type in the alias, any reference to a System class should use ???mscorlib...
+---
+<p>Recently found how to use Generics inside iBatis maps, which avoids the need for a lot of pointless criteria/data object classes and structs.</p>
+<p>&nbsp;</p>
+<p>The trick is how to reference the type in the alias, any reference to a System class should use &ldquo;mscorlib&rdquo;.</p>
+<p>&nbsp;</p>
+<p>Examples below:</p>
+<p>&nbsp;</p>
+<p>KeyValuePair&lt;string,string&gt;</p>
+<p>
+<div class="p_embed p_image_embed"><a href="http://stevenwilliamalexander.files.wordpress.com/2011/02/image001-png-scaled-1000.jpg"><img alt="Image001" height="184" src="{{ site.baseurl }}/assets/image001-png-scaled-1000.jpg?w=300" width="500" /></a></div></p>
+<p>&nbsp;</p>

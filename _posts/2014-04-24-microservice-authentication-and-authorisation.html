@@ -1,0 +1,71 @@
+---
+layout: post
+title: Microservice authentication and authorisation
+date: 2014-04-24 16:03:13.000000000 +01:00
+type: post
+published: true
+status: publish
+categories:
+- design
+- pattern
+tags:
+- architecture
+- authentication
+- authorisation
+- Microservice
+- pattern
+meta:
+  _edit_last: '46212493'
+  _publicize_pending: '1'
+  _oembed_141fc82ac79dd1d575c29befc791453d: "{{unknown}}"
+  _oembed_b12fbe40e68e4b5c3df639cfe4384bb5: '<div class="embed-slideshare"><iframe
+    src="https://www.slideshare.net/slideshow/embed_code/key/7DZzaz4eUP8Wh0" width="427"
+    height="356" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:1px
+    solid #CCC; border-width:1px; margin-bottom:5px; max-width: 100%;" allowfullscreen>
+    </iframe> <div style="margin-bottom:5px"> <strong> <a href="https://www.slideshare.net/TonyFabeen/nginx-scripting-extending-nginx-functionalities-with-lua"
+    title="Nginx Scripting - Extending Nginx Functionalities with Lua" target="_blank">Nginx
+    Scripting - Extending Nginx Functionalities with Lua</a> </strong> from <strong><a
+    href="http://www.slideshare.net/TonyFabeen" target="_blank">Tony Fabeen</a></strong>
+    </div></div>'
+  _oembed_time_b12fbe40e68e4b5c3df639cfe4384bb5: '1437525041'
+  _oembed_df29da1c6683df803166a541fbb74b88: "{{unknown}}"
+  _oembed_3a9a699f739fdf9281db0409f3748286: '<div class="embed-slideshare"><iframe
+    src="https://www.slideshare.net/slideshow/embed_code/key/7DZzaz4eUP8Wh0" width="427"
+    height="356" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:1px
+    solid #CCC; border-width:1px; margin-bottom:5px; max-width: 100%;" allowfullscreen>
+    </iframe> <div style="margin-bottom:5px"> <strong> <a href="https://www.slideshare.net/TonyFabeen/nginx-scripting-extending-nginx-functionalities-with-lua"
+    title="Nginx Scripting - Extending Nginx Functionalities with Lua" target="_blank">Nginx
+    Scripting - Extending Nginx Functionalities with Lua</a> </strong> from <strong><a
+    href="http://www.slideshare.net/TonyFabeen" target="_blank">Tony Fabeen</a></strong>
+    </div></div>'
+  _oembed_time_3a9a699f739fdf9281db0409f3748286: '1437654553'
+  _oembed_2b237e2285f1c4b137c827d30bc9e29b: "{{unknown}}"
+  _oembed_70be49ba1949a6c8f73d51bf23d1b2da: '<div class="embed-slideshare"><iframe
+    src="https://www.slideshare.net/slideshow/embed_code/key/7DZzaz4eUP8Wh0" width="427"
+    height="356" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:1px
+    solid #CCC; border-width:1px; margin-bottom:5px; max-width: 100%;" allowfullscreen>
+    </iframe> <div style="margin-bottom:5px"> <strong> <a href="https://www.slideshare.net/TonyFabeen/nginx-scripting-extending-nginx-functionalities-with-lua"
+    title="Nginx Scripting - Extending Nginx Functionalities with Lua" target="_blank">Nginx
+    Scripting - Extending Nginx Functionalities with Lua</a> </strong> from <strong><a
+    href="http://www.slideshare.net/TonyFabeen" target="_blank">Tony Fabeen</a></strong>
+    </div></div>'
+  _oembed_time_70be49ba1949a6c8f73d51bf23d1b2da: '1437689879'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p>Below is a sequence diagram describing a common pattern for handling authentication and authorisation in a microservice solution, where you have a number of small web services interconnected and don't want them all having to implement  authentication and authorisation individually, just to be simple services focused on their job.</p>
+<p><a href="http://stevenwilliamalexander.files.wordpress.com/2014/04/microservice-authentication-and-authorisation-seq.png"><img class="alignnone size-medium wp-image-391" src="{{ site.baseurl }}/assets/microservice-authentication-and-authorisation-seq.png?w=300" alt="Microservice authentication and authorisation seq" width="300" height="273" /></a></p>
+<p>Using this pattern you can have any number of business microservices, all using the authentication automatically and calling the same authorisation service when necessary, making them simpler to implement and re-using the services easier.</p>
+<p>You can go a step further and put the authorisation checks in the reverse proxy against each service endpoint but this requires the reverse proxy to know the actions/permissions of each service, plus it's likely your services permissions will be dynamic based on execution.</p>
+<p>Nginx with lua scripts are a good way of implementing the smart reverse proxy, below are some links about this.</p>
+<ul>
+<li>http://wiki.nginx.org/HttpLuaModule</li>
+<li>http://www.slideshare.net/TonyFabeen/nginx-scripting-extending-nginx-functionalities-with-lua</li>
+</ul>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>

@@ -1,0 +1,449 @@
+---
+layout: post
+title: ZF2 Restful API Example
+date: 2013-09-25 15:46:53.000000000 +01:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- API
+- JSON
+- php
+- Restful
+- Zend Framework 2
+- ZF2
+meta:
+  _edit_last: '46212493'
+  _publicize_pending: '1'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p>This is an<a href="https://github.com/stevenalexander/zf2-restful-api"> example application</a> showing how to create a RESTful JSON API using PHP and <a href="http://framework.zend.com/">Zend Framework 2</a>. It starts from a clean base rather than the skeleton app as that includes a load of files which are unnecessary for an API (language and html view files). Matches the <a href="http://framework.zend.com/manual/2.2/en/user-guide/overview.html">ZF2 Album example</a> but without the DB logic for simplicity. Examples of how to test the application will be included in part 2.</p>
+<h2><a href="https://github.com/stevenalexander/zf2-restful-api#requirements" name="requirements"></a>Requirements</h2>
+<ul>
+<li>PHP 5.3+</li>
+<li>Web server <a href="http://framework.zend.com/manual/2.2/en/user-guide/skeleton-application.html#virtual-host">setup with virtual host to serve project folder</a></li>
+<li><a href="http://getcomposer.org/">Composer</a> (manage dependencies)</li>
+</ul>
+<h2><a href="https://github.com/stevenalexander/zf2-restful-api#creating-the-api" name="creating-the-api"></a>Creating the API</h2>
+<ol>
+<li>Get composer:
+<pre><code>curl -sS https://getcomposer.org/installer | php
+</code></pre>
+</li>
+<li>Create the composer.json file to get ZF2:
+<pre><code>{
+    "require": {
+        "php": "&gt;=5.3.3",
+        "zendframework/zendframework": "&gt;=2.2.4"
+    }
+}
+</code></pre>
+</li>
+<li>Install the dependencies:
+<pre><code>php composer.phar install
+</code></pre>
+</li>
+<li>public/index.php (for directing calls to Zend and static)
+<pre><code>&lt;?php
+
+chdir(dirname(__DIR__));
+
+if (php_sapi_name() === 'cli-server' &amp;&amp; is_file(__DIR__ . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH))) {
+    return false;
+}
+
+require 'init_autoloader.php';
+Zend\Mvc\Application::init(require 'config/application.config.php')-&gt;run();
+</code></pre>
+</li>
+<li>public/.htaccess (for redirecting non-asset requests to index.php)
+<pre><code>RewriteEngine On
+# The following rule tells Apache that if the requested filename
+# exists, simply serve it.
+RewriteCond %{REQUEST_FILENAME} -s [OR]
+RewriteCond %{REQUEST_FILENAME} -l [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^.*$ - [NC,L]
+# The following rewrites all other queries to index.php. The
+# condition ensures that if you are using Apache aliases to do
+# mass virtual hosting, the base path will be prepended to
+# allow proper resolution of the index.php file; it will work
+# in non-aliased environments as well, providing a safe, one-size
+# fits all solution.
+RewriteCond %{REQUEST_URI}::$1 ^(/.+)(.+)::$
+RewriteRule ^(.*) - [E=BASE:%1]
+RewriteRule ^(.*)$ %{ENV:BASE}index.php [NC,L]
+</code></pre>
+</li>
+<li>init_autoloader.php (for loading Zend)
+<pre><code>&lt;?php
+
+$loader = include 'vendor/autoload.php';
+$zf2Path = 'vendor/zendframework/zendframework/library';
+$loader-&gt;add('Zend', $zf2Path);
+
+if (!class_exists('Zend\Loader\AutoloaderFactory')) {
+    throw new RuntimeException('Unable to load ZF2. Run `php composer.phar install` or define a ZF2_PATH environment variable.');
+}
+</code></pre>
+</li>
+<li>config/application.config.php (application wide configuration)
+<pre><code>&lt;?php
+return array(
+    'modules' =&gt; array(
+        'AlbumApi',
+    ),
+    'module_listener_options' =&gt; array(
+        'module_paths' =&gt; array(
+            './module',
+            './vendor',
+        ),
+        // local/global config location when needed
+        //'config_glob_paths' =&gt; array(
+        //    'config/autoload/{,*.}{global,local}.php',
+        //),
+    ),
+);
+</code></pre>
+</li>
+<li>module/AlbumApi/Module.php (module setup)
+<pre><code>&lt;?php
+
+namespace AlbumApi;
+
+use Zend\Mvc\ModuleRouteListener;
+use Zend\Mvc\MvcEvent;
+
+class Module
+{
+    public function onBootstrap(MvcEvent $e)
+    {
+        $eventManager        = $e-&gt;getApplication()-&gt;getEventManager();
+        $moduleRouteListener = new ModuleRouteListener();
+        $moduleRouteListener-&gt;attach($eventManager);
+    }
+
+    public function getConfig()
+    {
+        return include __DIR__ . '/config/module.config.php';
+    }
+
+    public function getAutoloaderConfig()
+    {
+        return array(
+            'Zend\Loader\StandardAutoloader' =&gt; array(
+                'namespaces' =&gt; array(
+                    __NAMESPACE__ =&gt; __DIR__ . '/src/' . __NAMESPACE__,
+                ),
+            ),
+        );
+    }
+}
+
+</code></pre>
+</li>
+<li>module/AlbumApi/config/module.config.php (module configuration)
+<pre><code>&lt;?php
+
+return array(
+    'router' =&gt; array(
+        'routes' =&gt; array(
+            'home' =&gt; array(
+                'type' =&gt; 'Zend\Mvc\Router\Http\Literal',
+                'options' =&gt; array(
+                    'route'    =&gt; '/',
+                    'defaults' =&gt; array(
+                        'controller' =&gt; 'AlbumApi\Controller\Index',
+                    ),
+                ),
+            ),
+        ),
+    ),
+    'controllers' =&gt; array(
+        'invokables' =&gt; array(
+            'AlbumApi\Controller\Index' =&gt; 'AlbumApi\Controller\IndexController'
+        ),
+    ),
+    'view_manager' =&gt; array(
+        'strategies' =&gt; array(
+            'ViewJsonStrategy',
+        ),
+    ),
+);
+</code></pre>
+</li>
+<li>module/AlbumApi/src/AlbumApi/Controller/IndexController.php (basic RESTful controller)
+<pre><code>&lt;?php
+namespace AlbumApi\Controller;
+
+use Zend\Mvc\Controller\AbstractRestfulController;
+use Zend\View\Model\JsonModel;
+
+class IndexController extends AbstractRestfulController
+{
+    public function getList()
+    {
+        return new JsonModel(array('data' =&gt; "Welcome to the Zend Framework Album API example"));
+    }
+}
+</code></pre>
+</li>
+<li>You should now be able to request the API URL and receive a JSON response with the welcome message</li>
+<li>module/AlbumApi/src/AlbumApi/Controller/AlbumController.php (album controller with CRUD REST actions)
+<pre><code>&lt;?php
+namespace AlbumApi\Controller;
+
+use Zend\Mvc\Controller\AbstractRestfulController;
+use Zend\View\Model\JsonModel;
+
+class AlbumController extends AbstractRestfulController
+{
+    public function getList()
+    {   // Action used for GET requests without resource Id
+        return new JsonModel(
+            array('data' =&gt;
+                array(
+                    array('id'=&gt; 1, 'name' =&gt; 'Mothership', 'band' =&gt; 'Led Zeppelin'),
+                    array('id'=&gt; 2, 'name' =&gt; 'Coda',       'band' =&gt; 'Led Zeppelin'),
+                )
+            )
+        );
+    }
+
+    public function get($id)
+    {   // Action used for GET requests with resource Id
+        return new JsonModel(array("data" =&gt; array('id'=&gt; 2, 'name' =&gt; 'Coda', 'band' =&gt; 'Led Zeppelin')));
+    }
+
+    public function create($data)
+    {   // Action used for POST requests
+        return new JsonModel(array('data' =&gt; array('id'=&gt; 3, 'name' =&gt; 'New Album', 'band' =&gt; 'New Band')));
+    }
+
+    public function update($id, $data)
+    {   // Action used for PUT requests
+        return new JsonModel(array('data' =&gt; array('id'=&gt; 3, 'name' =&gt; 'Updated Album', 'band' =&gt; 'Updated Band')));
+    }
+
+    public function delete($id)
+    {   // Action used for DELETE requests
+        return new JsonModel(array('data' =&gt; 'album id 3 deleted'));
+    }
+}
+</code></pre>
+</li>
+<li>Update module/AlbumApi/config/module.config.php to add controller and routing
+<pre><code>&lt;?php
+
+return array(
+    'router' =&gt; array(
+        'routes' =&gt; array(
+            'home' =&gt; array(
+                'type' =&gt; 'Zend\Mvc\Router\Http\Literal',
+                'options' =&gt; array(
+                    'route'    =&gt; '/',
+                    'defaults' =&gt; array(
+                        'controller' =&gt; 'AlbumApi\Controller\Index',
+                    ),
+                ),
+            ),
+            'album' =&gt; array(
+                'type'    =&gt; 'segment',
+                'options' =&gt; array(
+                    'route'    =&gt; '/album[/:id]',
+                    'constraints' =&gt; array(
+                        'id'     =&gt; '[0-9]+',
+                    ),
+                    'defaults' =&gt; array(
+                        'controller' =&gt; 'AlbumApi\Controller\Album',
+                    ),
+                ),
+            ),
+        ),
+    ),
+    'controllers' =&gt; array(
+        'invokables' =&gt; array(
+            'AlbumApi\Controller\Index' =&gt; 'AlbumApi\Controller\IndexController',
+            'AlbumApi\Controller\Album' =&gt; 'AlbumApi\Controller\AlbumController',
+        ),
+    ),
+    'view_manager' =&gt; array(
+        'strategies' =&gt; array(
+            'ViewJsonStrategy',
+        ),
+    ),
+);
+</code></pre>
+</li>
+<li>You can now make specific HTTP requests to the album resource to interact with it in a RESTful manner, e.g. GET /album to see the list of albums, PUT /album/3 to update album 3. Use a REST client, like Chromes Postman to test it out</li>
+</ol>
+<h2><a href="https://github.com/stevenalexander/zf2-restful-api#tricks-and-traps" name="tricks-and-traps"></a>Tricks and traps</h2>
+<h3><a href="https://github.com/stevenalexander/zf2-restful-api#error-handling-for-application-exceptions-and-404s" name="error-handling-for-application-exceptions-and-404s"></a>Error handling for application exceptions and 404s</h3>
+<p>If your application experiences an error or can't find a requested resource you want to return a meaningful response. Currently if an error occurs you'll get a Zend\View\Exception\RuntimeException 'Unable to render template "error"', cause it can't find the html error view. To fix this you need to hook into the ZF2 eventmanager events and intercept errors, returning an appropiate response.</p>
+<p>You do this in the module Module.php file:</p>
+<pre><code>&lt;?php
+
+namespace AlbumApi;
+
+use Zend\Mvc\ModuleRouteListener;
+use Zend\Mvc\MvcEvent;
+use Zend\View\Model\JsonModel;
+
+class Module
+{
+    public function onBootstrap(MvcEvent $e)
+    {
+        $eventManager        = $e-&gt;getApplication()-&gt;getEventManager();
+        $moduleRouteListener = new ModuleRouteListener();
+        $moduleRouteListener-&gt;attach($eventManager);
+
+        $eventManager-&gt;attach(MvcEvent::EVENT_DISPATCH_ERROR, array($this, 'onDispatchError'), 0);
+        $eventManager-&gt;attach(MvcEvent::EVENT_RENDER_ERROR, array($this, 'onRenderError'), 0);
+    }
+
+    public function onDispatchError($e)
+    {
+        return $this-&gt;getJsonModelError($e);
+    }
+
+    public function onRenderError($e)
+    {
+        return $this-&gt;getJsonModelError($e);
+    }
+
+    public function getJsonModelError($e)
+    {
+        $error = $e-&gt;getError();
+        if (!$error) {
+            return;
+        }
+
+        $response = $e-&gt;getResponse();
+        $exception = $e-&gt;getParam('exception');
+        $exceptionJson = array();
+        if ($exception) {
+            $exceptionJson = array(
+                'class' =&gt; get_class($exception),
+                'file' =&gt; $exception-&gt;getFile(),
+                'line' =&gt; $exception-&gt;getLine(),
+                'message' =&gt; $exception-&gt;getMessage(),
+                'stacktrace' =&gt; $exception-&gt;getTraceAsString()
+            );
+        }
+
+        $errorJson = array(
+            'message'   =&gt; 'An error occurred during execution; please try again later.',
+            'error'     =&gt; $error,
+            'exception' =&gt; $exceptionJson,
+        );
+        if ($error == 'error-router-no-match') {
+            $errorJson['message'] = 'Resource not found.';
+        }
+
+        $model = new JsonModel(array('errors' =&gt; array($errorJson)));
+
+        $e-&gt;setResult($model);
+
+        return $model;
+    }
+
+    public function getConfig()
+    {
+        return include __DIR__ . '/config/module.config.php';
+    }
+
+    public function getAutoloaderConfig()
+    {
+        return array(
+            'Zend\Loader\StandardAutoloader' =&gt; array(
+                'namespaces' =&gt; array(
+                    __NAMESPACE__ =&gt; __DIR__ . '/src/' . __NAMESPACE__,
+                ),
+            ),
+        );
+    }
+}
+</code></pre>
+<p>You can extend this approach to return error responses with specific <a href="http://www.restapitutorial.com/httpstatuscodes.html">HTTP status codes</a> for exceptions by changing the response status code based on the exception (custom exceptions with appropiate codes/messages).</p>
+<h3><a href="https://github.com/stevenalexander/zf2-restful-api#return-response-for-unsupported-method" name="return-response-for-unsupported-method"></a>Return response for unsupported method</h3>
+<p>The <a href="https://github.com/zendframework/zf2/blob/master/library/Zend/Mvc/Controller/AbstractRestfulController.php">ZF2 AbstractRestfulController</a> has base action functions for all standard HTTP methods, but if you don't want to support some for all resources it will try and return an array which is not a JsonModel so will cause a rendering exception. Correct this by creating and using your own AbstractRestfulJsonController which overrides these methods.</p>
+<p>AbstractRestfulJsonController.php</p>
+<pre><code>&lt;?php
+namespace AlbumApi\Controller;
+
+use Zend\Mvc\Controller\AbstractRestfulController;
+use Zend\Http\Response;
+
+class AbstractRestfulJsonController extends AbstractRestfulController
+{
+    protected function methodNotAllowed()
+    {
+        $this-&gt;response-&gt;setStatusCode(405);
+        throw new \Exception('Method Not Allowed');
+    }
+
+    # Override default actions as they do not return valid JsonModels
+    public function create($data)
+    {
+        return $this-&gt;methodNotAllowed();
+    }
+
+    public function delete($id)
+    {
+        return $this-&gt;methodNotAllowed();
+    }
+
+    public function deleteList()
+    {
+        return $this-&gt;methodNotAllowed();
+    }
+
+    public function get($id)
+    {
+        return $this-&gt;methodNotAllowed();
+    }
+
+    public function getList()
+    {
+        return $this-&gt;methodNotAllowed();
+    }
+
+    public function head($id = null)
+    {
+        return $this-&gt;methodNotAllowed();
+    }
+
+    public function options()
+    {
+        return $this-&gt;methodNotAllowed();
+    }
+
+    public function patch($id, $data)
+    {
+        return $this-&gt;methodNotAllowed();
+    }
+
+    public function replaceList($data)
+    {
+        return $this-&gt;methodNotAllowed();
+    }
+
+    public function patchList($data)
+    {
+        return $this-&gt;methodNotAllowed();
+    }
+
+    public function update($id, $data)
+    {
+        return $this-&gt;methodNotAllowed();
+    }
+}
+</code></pre>
+<h3><a href="https://github.com/stevenalexander/zf2-restful-api#get-and-getlist-actions-for-child-resources" name="get-and-getlist-actions-for-child-resources"></a>get and getlist actions for child resources</h3>
+<p>If you want to use child resources for resources, e.g. /album/2/track/10, you'll find a problem that the AbstractRestfulController will not route to getlist action functions correctly, instead it will go to get with the id for the parent resource . To correct this you need to add a separate controller and route for the list and item, and extract the child id param from the route directly.</p>

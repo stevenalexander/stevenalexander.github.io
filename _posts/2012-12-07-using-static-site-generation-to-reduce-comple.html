@@ -1,0 +1,38 @@
+---
+layout: post
+title: Using static site generation to reduce complexity
+date: 2012-12-07 15:31:00.000000000 +00:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- generation
+- html
+- static
+meta:
+  _original_post_id: ''
+  _original_import_author: Steven A
+  _oembed_ddebe84e6713da6a8e990992a749625c: "{{unknown}}"
+  _oembed_d00a9619927c6d3573809f8e3243b297: "{{unknown}}"
+  _oembed_ba0ee986b79cf5b021dab8c466ad2645: "{{unknown}}"
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+excerpt: Recently had some exposure to static HTML projects and noticed the incredible
+  advantages in deployment/scalability/reliability. This made me re-evaluate old projects
+  where I used dynamic web frameworks with a full tech stack (e.g. Scala/Play/Mongo...
+---
+<p>
+<p>Recently had some exposure to static HTML projects and noticed the incredible advantages in deployment/scalability/reliability. This made me re-evaluate old projects where I used dynamic web frameworks with a full tech stack (e.g. Scala/Play/MongoDB). Many of them didn't use much in the way of dynamic features, for most a request to a URL returned the same response HTML. For performance I normally ended up caching the response on the frontend webserver relying on this, so why do I insist on making things complicated?</p>
+<p>Most of time these projects are just displaying some dynamic content retrieved from a data source using a couple of different layouts. Rather than creating an application to generate the HTML for the dynamic content each time it is requested, why not create an application to generate the HTML once at the point the content changes.</p>
+<p>You can combine the static HTML site with a dynamic site to cover any requirements that need dynamic responses/functionality (e.g. administration, content management). Script the static site generation and deployment so it can be triggered by any content changes, use hashes based on content to minimise unnecessary regeneration. This gives you the advantages of static HTML while still allowing you to dynamically alter the content when needed. As an added bonus it makes it easier for designers/content editors to contribute, as you're just using HTML/CSS with simple templating.</p>
+<p>Obviously this approach can't be used for everything, won't work with too large a data source or application with more dynamic content. But for websites where common request &nbsp;responses are predictable, eliminating all that complexity will give you a incredibly fast and reliable site.</p></p>
+<p>Links:</p>
+<ul>
+<li><a href="http://mickgardner.com/2011/04/27/An-Introduction-To-Static-Site-Generators.html">http://mickgardner.com/2011/04/27/An-Introduction-To-Static-Site-Generators.html</a></li>
+<li><a href="http://jekyllbootstrap.com/lessons/jekyll-introduction.html">Jekyll</a></li>
+</ul>

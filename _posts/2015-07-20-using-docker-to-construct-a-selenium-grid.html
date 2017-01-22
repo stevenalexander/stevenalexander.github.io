@@ -1,0 +1,53 @@
+---
+layout: post
+title: Using Docker to construct a Selenium Grid
+date: 2015-07-20 14:57:07.000000000 +01:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- containerisation
+- docker
+- selenium
+- testing
+meta:
+  _oembed_dbccf51c6485686bb3a21cff6dbf38e8: "{{unknown}}"
+  _rest_api_published: '1'
+  _rest_api_client_id: "-1"
+  _publicize_job_id: '12908068905'
+  _oembed_b8be6b1ccab07b6218505d91fa11d1d5: "{{unknown}}"
+  _oembed_ece3b75df202303c06476d1df39d9771: "{{unknown}}"
+  _oembed_6a2332da37f33ba32a309df2affe4df4: "{{unknown}}"
+  _oembed_1b12b03c1888d1fece8f338db9d4a1e4: "{{unknown}}"
+  _oembed_8a41459b6ad0e0622f380aa922e64334: "{{unknown}}"
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p>When thinking about possible uses for containerisation, one which jumped out at me was web testing. This normally involves large numbers of big, slow and fragile VMs.</p>
+<p>I started with making a simple PhantomJS docker container, which removes the necessity of installing PhantomJS on your machine (which can be annoying complex). The image is available on Docker Hub <a href="https://registry.hub.docker.com/u/stevenalexander/phantomjs/">here</a>.</p>
+<p>The dream would be using containers to construct a large Selenium grid of different browsers and versions, taking advantage of the performance/reduced size benefits of containers to be able to run a bigger/faster grid than you normally would with VMs. As the containers would be disposable, you could easily start/stop Selenium nodes for browsers when needed (i.e. a set for quick smoke tests and one for more extensive overnight tests). Developers would be able to use the same set of containers and hub scripts, so wouldn't have to mess around with VMs and scripts to run tests to validate and reproduce issues, making it easier to find issues early.</p>
+<p>The main problem is containerisation is currently limited to Linux OS containers only, which means no testing on OS X or Windows, so no Safari and Internet Explorer (who needs to test that, right). These holes can be filled with VMs spun up by Vagrant and added to the Selenium hub, but it's not an ideal solution. Still, I believe this is a potential solution for small projects which can't afford Browserstack or Saucelabs licences for testing.</p>
+<p>Below are the Docker commands and Selenium tests to call various browsers:</p>
+<pre><code class="dockerfile"><span class="pl-c"># Run hub</span>
+docker <span class="keyword">run</span> -d -p <span class="number">4444</span>:<span class="number">4444</span> --name selenium-hub selenium/hub:<span class="number">2.46</span><span class="number">.0</span>
+
+<span class="pl-c"># Run browser containers</span>
+docker <span class="keyword">run</span> -d -P --link selenium-hub:hub selenium/node-chrome:<span class="number">2.46</span><span class="number">.0</span>
+docker <span class="keyword">run</span> -d -P --link selenium-hub:hub selenium/node-firefox:<span class="number">2.46</span><span class="number">.0</span>
+docker <span class="keyword">run</span> -d --link selenium-hub:hub stevenalexander/node-phantomjs:<span class="number">2.46</span><span class="number">.0</span>
+<span class="pl-c"># Add vagrant VM browser nodes here</span>
+</code></pre>
+<p>With these commands you now have a Selenium Grid running with a number of browser nodes registered and can run tests against the hub using the RemoteWebDriver targeting individual browser/versions. You can modify the containers used to create containers running different versions or add VMs to register IE/Safari/Mobile nodes.</p>
+<p>Useful links:</p>
+<ul>
+<li>https://www.docker.com/</li>
+<li>http://boot2docker.io/</li>
+<li><a href="https://github.com/SeleniumHQ/docker-selenium">Seleniums official containers and readme</a></li>
+<li><a href="https://github.com/SeleniumHQ/selenium/wiki/Grid2">Selenium documentation for running a grid</a></li>
+<li><a href="https://github.com/stevenalexander/testng-selenium-tests">Simple TestNG selenium tests for running against hub</a></li>
+</ul>

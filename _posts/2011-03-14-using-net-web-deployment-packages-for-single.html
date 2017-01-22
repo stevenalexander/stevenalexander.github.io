@@ -1,0 +1,36 @@
+---
+layout: post
+title: Using .NET Web Deployment Packages for single build releases parameterized
+  for multiple environment deployments
+date: 2011-03-14 12:06:00.000000000 +00:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- deployment
+- msbuild
+- net
+- webdeployment
+meta:
+  _original_post_id: ''
+  _original_import_author: Steven A
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+excerpt: The titles a bit of a mouth full but I think this is a common requirement
+  for deployments, where a release is built once and then deployed for different environments
+  (e.g. first UAT then Production when finished testing). When I first used Visual
+  ...
+---
+<p>The titles a bit of a mouth full but I think this is a common requirement for deployments, where a release is built once and then deployed for different environments (e.g. first UAT then Production when finished testing).</p>
+<p>When I first used Visual Studio 2010 I noticed the new Web.config.Debug/Web.config.Release transformation and thought it would be a handy feature, but after looking at build/deployment scripts for a project I've realised it's useless for the kind of releases I do. I've never deployed directly from Visual Studio, it's always been build the release via msbuild then copy the release onto target environment and use msbuild to perform deployment tasks. Setting environment specific configuration values was either done manually (nasty) or by xml transformations in msbuild script (messy). Web.config transformations seemed to fix this but require one unacceptable compromise, separate builds per environment for a single release, since the transformation is only applied at on build and it's apparently not possible to use the same internal targets to transform the configs afterwards for deployments (please correct me if you know how). Since multiple builds makes tracing issues more difficult I wouldn't want to risk using it.</p>
+<p>As an alternative you can use Web Deployment Packages, which build and zip up your web application (asp/mvc/wcf etc.) with a neat script for deploying it straight onto the web server (creating virtual directories automatically) and using a "SetParameters.xml" file to hold environment specific configuration. If in your application you include a file called "parameters.xml" with all environment specific configuration (see <a href="http://msdn.microsoft.com/en-us/library/ff398068%28v=VS.100%29.aspx">here</a> for details) when you build deployment package (by msbuild in the release or right clicking in VS) your "SetParameters.xml" will contain the names/default values of the configuration values. Its then a matter of maintaining environment specific versions of the SetParameters.xml file and using them when deploying the web packages by command line.</p>
+<p>&nbsp;</p>
+<p>
+<div class="p_embed p_image_embed"><a href="http://getfile8.posterous.com/getfile/files.posterous.com/temp-2011-03-14/njeilAhqbCqICfFrmwmcdHCEHlfzBrigavenhgjgFGAizrjmEEFBlkwGimtF/Capture.PNG.scaled1000.png"><img alt="Capture" height="121" src="{{ site.baseurl }}/assets/Capture.PNG.scaled500.png" width="500" /></a></div>
+<div class="p_embed p_image_embed"><a href="http://stevenwilliamalexander.files.wordpress.com/2011/03/capture1-scaled1000.png"><img alt="Capture1" height="169" src="{{ site.baseurl }}/assets/capture1-scaled1000.png?w=300" width="500" /></a></div>
+<p>See this <a href="http://vishaljoshi.blogspot.com/2010/07/web-deploy-parameterization-in-action.html">blog post</a> for details on how to set parameters correctly and get the web deployment package from <a href="http://technet.microsoft.com/en-us/library/dd569059%28WS.10%29.aspx">here</a>.</p>

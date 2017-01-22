@@ -1,0 +1,61 @@
+---
+layout: post
+title: Sinatra SSL redirection via nginx unicorn - forbidden error
+date: 2013-02-14 11:04:00.000000000 +00:00
+type: post
+published: true
+status: publish
+categories:
+- Setup
+tags:
+- error
+- forbidden
+- nginx
+- ruby
+- sinatra
+- ssl
+- unicorn
+meta:
+  _original_post_id: ''
+  _original_import_author: Steven A
+  _edit_last: '46212493'
+  _oembed_5220a81f71662c8b31d7f376436645d0: "{{unknown}}"
+  _oembed_dd1d51ab6d6ae390130221dca8f1ffba: "{{unknown}}"
+  _oembed_f10434d40ff07c218cbb620c878e4d4b: "{{unknown}}"
+  _oembed_3d7345284b36035afb62842319526992: "{{unknown}}"
+  _oembed_8a0ca5cced671ad0fbb88e034e232dd6: "{{unknown}}"
+  _oembed_86c33c607369763350bb581af83fe351: "{{unknown}}"
+  _oembed_4e9cd9ecde75cf72046bf3ac6e841e43: "{{unknown}}"
+  _oembed_54d47c420482aa0b510380291f67cfbd: "{{unknown}}"
+  _oembed_c74b204c310e2506a4f416cfa4373470: "{{unknown}}"
+  _oembed_b08434694d65f30163fd72887b454174: "{{unknown}}"
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+excerpt: Recently banged my head against this issue for ages until someone with nginx
+  knowledge pointed out it wasn't nginx but a sinatra/unicorn issue. Basically the
+  symtoms were after setting up my Sinatra application, with Unicorn as the webserver
+  and N...
+---
+<p>Recently banged my head against this issue for ages until someone with nginx knowledge pointed out it wasn't nginx but a sinatra/unicorn issue.</p>
+<p>Basically the symtoms were after setting up my Sinatra application, with Unicorn as the webserver and Nginx as the SSL proxy (redirecting http to https for the domain) anytime the application received a post request on my login screen it responded with "forbidden" (403). Get requests for the login screen worked fine.</p>
+<p>Initially I thought the error came from Nginx, but it turned out it came from Rack (running via Unicorn). The issue was as part of the login post sinatra-authentication was redirecting to http, not https. Nginx then redirected the client to https but lost the auth details, so Rack gave the forbidden response (with no helpful debug).</p>
+<p>To fix this all I had to do was add the following to the nginx conf at the proxy settings:</p></p>
+<div style="background:white;overflow:auto;color:black;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;">
+<div class="CodeRay">
+<div class="code">
+<pre>proxy_set_header X-Forwarded-Ssl on;</pre>
+</div>
+</div>
+</div>
+<p>&nbsp;</p>
+<p>That told Rack it was working via an ssl proxy and changed the redirects to use https. No clue why I needed to do this, but in future I'll use something like rack-ssl-enforcer and handle the redirects in the application itself rather than nginx conf.</p>
+<p>Links:</p>
+<ul>
+<li><a href="http://oobaloo.co.uk/recognising-ssl-requests-in-rack-with-custom">http://oobaloo.co.uk/recognising-ssl-requests-in-rack-with-custom</a></li>
+<li><a href="https://groups.google.com/forum/?fromgroups=#!topic/pyweb-il/9KRdYbx8Gyc">https://groups.google.com/forum/?fromgroups=#!topic/pyweb-il/9KRdYbx8Gyc</a></li>
+</ul>
+<p>&nbsp;</p>

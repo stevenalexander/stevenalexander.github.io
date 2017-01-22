@@ -1,0 +1,115 @@
+---
+layout: post
+title: LINUX - Setup Ruby/Sinatra/Unicorn/NGINX server
+date: 2012-08-09 16:24:00.000000000 +01:00
+type: post
+published: true
+status: publish
+categories:
+- ruby
+- Setup
+tags:
+- linux
+- nginx
+- ruby
+- sinatra
+- unicorn
+meta:
+  _original_post_id: ''
+  _original_import_author: Steven A
+  _edit_last: '46212493'
+  _oembed_d3ce62d47142136d733bef3e0f7333c8: "{{unknown}}"
+  _oembed_5c5d1fdc1a2846cb4f2169d766da3c35: "{{unknown}}"
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+excerpt: 'Quick intro in angry split personality QA format: Ya What? Unicorns? Sinatra??
+  Nuggex??? You''re just stringing random words together! Badly! Ok, it''s a lot of
+  tech words, here''s the breakdown: Ruby - Lovely scripting language that makes it
+  easy to...'
+---
+<p>
+<p>Quick intro in angry split personality QA format:</p>
+<p><em>Ya What? Unicorns? Sinatra?? Nuggex??? You're just stringing random words together! Badly!</em></p>
+<p>Ok, it's a lot of tech words, here's the breakdown:</p>
+<ul>
+<li><a href="http://www.ruby-lang.org/en/about/">Ruby</a>&nbsp;- Lovely scripting language that makes it easy to write clear concise code</li>
+<li><a href="http://www.sinatrarb.com/intro.html">Sinatra</a>&nbsp;- Framework for creating web applications in Ruby, very simple to use</li>
+<li><a href="http://unicorn.bogomips.org/">Unicorn</a>&nbsp;- Quick and reliable HTTP server for Ruby</li>
+<li><a href="http://nginx.org/en/">NGINX</a>&nbsp;- (n-gin-x) HTTP server and reverse proxy, ultra quick for static files</li>
+</ul>
+<p><em>Why? You could be drinking beer at home?</em></p>
+<p>Using Unicorn and NGINX together we get the best of both for hosting our site, Unicorn handles the requests to the Ruby app and NGINX handles the static public files (Images/CSS/JS). GitHub posted a&nbsp;<a href="https://github.com/blog/517-unicorn">blog</a>&nbsp;why they switched to Unicorn and the benefits.</p>
+<p><em>Fine! Lets get this over with then!</em></p>
+<p>Steps in this sample done in AWS EC2 Ubuntu 11.10 image:</p>
+<ul>
+<li><a href="http://wiki.nginx.org/Install">Install NGINX</a></li>
+<li><a href="http://wiki.nginx.org/NginxCommandLine">Start NGINX</a>&nbsp;and test -&nbsp;<em>"/etc/init.d/nginx start"</em>&nbsp;but location of nginx depends on distro</li>
+<li><a href="http://www.ruby-lang.org/en/downloads/">Install Ruby</a>&nbsp;-&nbsp;<em>"sudo apt-get install ruby1.9.1-dev"</em>&nbsp;(actually installs 1.9.2), need dev version for gems</li>
+<li>Install Ruby gems
+<ul>
+<li>Install make -&nbsp;<em>"sudo apt-get install make"</em>&nbsp;(may already be installed)</li>
+<li>Install gcc -&nbsp;<em>"sudo apt-get install gcc"</em>&nbsp;(may already be installed)</li>
+<li>Install gems -&nbsp;<em>"sudo gem install unicorn sinatra"</em></li>
+</ul>
+</li>
+<li>Check unicorn is working&nbsp;<em>"unicorn -version"&nbsp;</em>(if not check Ruby gems installed and are in path)</li>
+<li>Make simple sinatra app
+<ul>
+<li>make a folder for your app e.g. ruby1</li>
+<li>In the folder write a file "app.rb" with the following content:</li>
+<li><em>require 'rubygems'</em><br /><em>require 'sinatra'</em>
+<p><em>get '/' do</em><br /><em>&nbsp;&nbsp;"hello world!"</em><br /><em>end</em></p>
+</li>
+</ul>
+<ul>
+<li>Test site starts with "<em>ruby app.rb</em>", you can wget the page to check content</li>
+</ul>
+</li>
+<li>In same directory write config.ru for unicorn
+<ul>
+<li><em>require 'sinatra'</em>
+<p><em>set :env, :production</em><br /><em>disable :run</em></p>
+<p><em>require './app.rb'</em></p>
+<p><em>run Sinatra::Application</em></p>
+</li>
+</ul>
+</li>
+<li>In same directory write&nbsp;unicorn.conf for unicorn
+<ul>
+<li><em>worker_processes 8</em><br /><em>working_directory "/home/USER/APPDIR"</em><br /><em>listen 'unix:/tmp/basic.sock', :backlog =&gt; 512</em><br /><em>timeout 120</em><br /><em>pid "/var/run/unicorn/basic_unicorn.pid"</em>
+<p><em>preload_app true</em><br /><em>if GC.respond_to?(:copy_on_write_friendly=)</em><br /><em>&nbsp; GC.copy_on_write_friendly = true</em><br /><em>end</em></p>
+<p><em>before_fork do |server, worker|</em><br /><em>&nbsp; old_pid = "#{server.config[:pid]}.oldbin"</em><br /><em>&nbsp; if File.exists?(old_pid) &amp;&amp; server.pid != old_pid</em><br /><em>&nbsp; &nbsp; begin</em><br /><em>&nbsp; &nbsp; &nbsp; Process.kill("QUIT", File.read(old_pid).to_i)</em><br /><em>&nbsp; &nbsp; rescue Errno::ENOENT, Errno::ESRCH</em><br /><em>&nbsp; &nbsp; &nbsp; # someone else did our job for us</em><br /><em>&nbsp; &nbsp; end</em><br /><em>&nbsp; end</em><br /><em>end</em></p>
+</li>
+</ul>
+</li>
+<li>Create unicorn running dir
+<ul>
+<li><em>"mkdir /var/run/unicorn"</em></li>
+<li>Set perms so unicorn running user can write to this dir</li>
+</ul>
+</li>
+<li>Start unicorn
+<ul>
+<li><em>"unicorn -c unicorn.conf &amp;"&nbsp;</em>should show worker threading starting</li>
+</ul>
+</li>
+<li>Add new NGINX conf
+<ul>
+<li>In /etc/nginx/sites-enabled/, write a file unicorn</li>
+<li>upstream app_server {<br />&nbsp; server unix:/tmp/basic.sock fail_timeout=0;<br />}
+<p>server {<br />&nbsp; listen 80 default deferred; # for Linux</p>
+<p>&nbsp; client_max_body_size 4G;<br />&nbsp; server_name _;</p>
+<p>&nbsp; keepalive_timeout 5;</p>
+<p>&nbsp; # path for static files<br />&nbsp; root /home/USERNAME/basic/public;</p>
+<p>&nbsp; # Prefer to serve static files directly from nginx to avoid unnecessary<br />&nbsp; # data copies from the application server.<br />&nbsp; try_files $uri/index.html $uri.html $uri @app;</p>
+<p>&nbsp; location @app {<br />&nbsp; &nbsp; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;<br />&nbsp; &nbsp; proxy_set_header Host $http_host;<br />&nbsp; &nbsp; proxy_redirect off;<br />&nbsp; &nbsp; proxy_pass <a href="http://app_server">http://app_server</a>;<br />&nbsp; }<br />}</p>
+</li>
+</ul>
+</li>
+<li>Restart nginx -&nbsp;<em>"sudo service nginx restart"</em></li>
+<li>Test your site!</li>
+</ul>

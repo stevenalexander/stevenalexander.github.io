@@ -1,0 +1,42 @@
+---
+layout: post
+title: ASP.MVC - Why isn't my Textbox/Select/Hidden value updating to new model value
+  after Post action?
+date: 2011-02-17 12:15:00.000000000 +00:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- mvc
+- net
+- problem
+- razor
+meta:
+  _original_post_id: ''
+  _original_import_author: Steven A
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+excerpt: This is intended as one of a series of posts on ASP.MVC 3 (Razor) about tips
+  and traps as I learn, feel free to comment with advice or anything to help me or
+  others. One weird thing I noticed on my MVC form was that it didn???t update input
+  values...
+---
+<p>This is intended as one of a series of posts on ASP.MVC 3 (Razor) about tips and traps as I learn, feel free to comment with advice or anything to help me or others.</p>
+<p>&nbsp;</p>
+<p>One weird thing I noticed on my MVC form was that it didn&rsquo;t update input values after a post action if I changed the model value which should be using. It would set the value the first time in the get action, but any subsequent requests would keep the initial value. I had a requirement to update a textbox value to uppercase after a search action but nothing I did in the model would affect the value in the input.</p>
+<p>&nbsp;</p>
+<p>Turns out it was caused by my using an HtmlHelper for my input:</p>
+<p>
+<div class="p_embed p_image_embed"><a href="http://stevenwilliamalexander.files.wordpress.com/2011/02/image001.png"><img alt="Image001" height="15" src="{{ site.baseurl }}/assets/image001.png?w=300" width="500" /></a></div></p>
+<p>&nbsp;</p>
+<p>It seems all the HtmlHelpers (dropdownlist/hidden/textarea included) will try to use the posted value if it is present rather than a value from the model, under the assumption that a post which returns to the same view is dealing with validation and should display the same data.</p>
+<p>&nbsp;</p>
+<p>To avoid this you have three options:</p>
+<p class="MsoListParagraph"><span style="font-family:Symbol;"><span>&middot;<span style="font:7pt Times New Roman;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></span></span><span>Don&rsquo;t use a helper, write the input tag and set the value to your model property directly (annoying).</span></p>
+<p class="MsoListParagraph"><span style="font-family:Symbol;"><span>&middot;<span style="font:7pt Times New Roman;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></span></span><span>Use ModelState.Clear() in your controller post action, which will remove all post data and force the helper to use the model (nuke it from orbit! Careful, this will clear all form values</span></p>
+<p class="MsoListParagraph"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Clear the values you want to update individually, using "ModelState.SetModelValue(key, new ValueProviderResult(null, string.Empty, System.Globalization.CultureInfo.InvariantCulture));" (I added an extension method to do this rather with just the key)</span></p>

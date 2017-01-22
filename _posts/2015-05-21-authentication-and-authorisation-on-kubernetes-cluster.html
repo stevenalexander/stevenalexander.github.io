@@ -1,0 +1,154 @@
+---
+layout: post
+title: Authentication and authorisation on Kubernetes cluster
+date: 2015-05-21 09:22:21.000000000 +01:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- authentication
+- authorisation
+- docker
+- google cloud
+- kubernetes
+meta:
+  _publicize_pending: '1'
+  _rest_api_published: '1'
+  _rest_api_client_id: "-1"
+  _publicize_job_id: '10844779944'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p>This is a description of the steps to deploy the Docker Authentication and authorisation solution (from earlier blog <a href="https://stevenwilliamalexander.wordpress.com/2015/05/11/microservice-authentication-and-authorisation-using-docker/">here</a>) on a <a href="http://kubernetes.io/">kubernetes</a> cluster, hosted on Google Cloud platform, fully split into pods/services so it can be scaled/load balanced.</p>
+<p>The original source is <a href="https://github.com/stevenalexander/docker-authentication-authorisation">here</a>. I used MySql pods for persisting data to make the session/person pods stateless, which is described <a href="https://github.com/stevenalexander/docker-authentication-authorisation/blob/master/kubernetes-persistent-disks.md">here</a>.</p>
+<p><a href="https://raw.githubusercontent.com/stevenalexander/docker-authentication-authorisation/master/images/microservice-authentication-and-authorisation-kubernetes-scaling-architecture.jpg" target="_blank"><img title="Kubernetes architecture diagram" src="{{ site.baseurl }}/assets/microservice-authentication-and-authorisation-kubernetes-scaling-architecture.jpg" alt="Kubernetes architecture diagram" /></a></p>
+<p>Based on the Kubernetes <a href="https://cloud.google.com/container-engine/docs/tutorials/guestbook">Guestbook</a> tutorial.</p>
+<p>Requires:</p>
+<ul>
+<li><a href="https://cloud.google.com/">Google Cloud</a> account (free trial needs payment details)</li>
+<li><a href="https://cloud.google.com/container-engine/docs/before-you-begin#install_the_gcloud_command_line_interface">gcloud</a> tools (I recommend you do one of the <a href="https://cloud.google.com/container-engine/docs/tutorials/hello-wordpress">container engine tutorials</a> first)</li>
+<li><a href="https://www.docker.com/">Docker</a></li>
+<li>JDK (to compile java file locally)</li>
+<li><a href="https://gradle.org/">Gradle</a> (for build automation)</li>
+</ul>
+<h2><a id="user-content-setup" class="anchor" href="https://github.com/stevenalexander/docker-authentication-authorisation/blob/master/kubernetes.md#setup"></a>Setup</h2>
+<ol>
+<li>Build microservices and copy jar/config into volumes</li>
+</ol>
+<pre><code>gradle buildJar
+
+</code></pre>
+<ol>
+<li>Login to gcloud and set project/zone</li>
+</ol>
+<pre><code>gcloud auth login
+gcloud config set project PROJECTID
+gcloud config set compute/zone europe-west1-b
+</code></pre>
+<ol>
+<li>Build the container images and publish to <a href="https://cloud.google.com/tools/container-registry/">Google Container Registry</a></li>
+</ol>
+<pre><code># Build
+docker build -t stevena/replicated-nginx-lua:latest      -f kubernetes/replicated/dockerfiles/Dockerfile-nginx-lua .
+docker build -t stevena/replicated-frontend:latest       -f kubernetes/replicated/dockerfiles/Dockerfile-frontend .
+docker build -t stevena/replicated-authentication:latest -f kubernetes/replicated/dockerfiles/Dockerfile-authentication .
+docker build -t stevena/replicated-authorisation:latest  -f kubernetes/replicated/dockerfiles/Dockerfile-authorisation .
+docker build -t stevena/replicated-session:latest        -f kubernetes/replicated/dockerfiles/Dockerfile-session .
+docker build -t stevena/replicated-person:latest         -f kubernetes/replicated/dockerfiles/Dockerfile-person .
+
+# Tag
+docker tag stevena/replicated-nginx-lua      gcr.io/PROJECTID/replicated-nginx-lua
+docker tag stevena/replicated-frontend       gcr.io/PROJECTID/replicated-frontend
+docker tag stevena/replicated-authentication gcr.io/PROJECTID/replicated-authentication
+docker tag stevena/replicated-authorisation  gcr.io/PROJECTID/replicated-authorisation
+docker tag stevena/replicated-session        gcr.io/PROJECTID/replicated-session
+docker tag stevena/replicated-person         gcr.io/PROJECTID/replicated-person
+
+# Publish
+gcloud preview docker push gcr.io/PROJECTID/replicated-nginx-lua
+gcloud preview docker push gcr.io/PROJECTID/replicated-frontend
+gcloud preview docker push gcr.io/PROJECTID/replicated-authentication
+gcloud preview docker push gcr.io/PROJECTID/replicated-authorisation
+gcloud preview docker push gcr.io/PROJECTID/replicated-session
+gcloud preview docker push gcr.io/PROJECTID/replicated-person
+</code></pre>
+<ol>
+<li>Create the Google Cloud persistent disk for the MySql databases</li>
+</ol>
+<pre><code># size is 200GB for performance recommendations https://developers.google.com/compute/docs/disks/persistent-disks#pdperformance
+gcloud compute disks create --size 200GB replicated-session-mysql-disk
+gcloud compute disks create --size 200GB replicated-person-mysql-disk
+</code></pre>
+<ol>
+<li>Create the Cluster, Pod and allow external web access</li>
+</ol>
+<pre><code># Create cluster
+gcloud alpha container clusters create replicated-ms-auth --num-nodes 7 --machine-type n1-standard-1
+# 8 instances is the default max quota, so 7 nodes plus 1 master
+gcloud config set container/cluster replicated-ms-auth
+
+# Create Mysql pods and services
+gcloud alpha container kubectl create -f kubernetes/replicated/pods/person-mysql-pod.yaml
+gcloud alpha container kubectl create -f kubernetes/replicated/pods/session-mysql-pod.yaml
+
+gcloud alpha container kubectl create -f kubernetes/replicated/services/person-mysql-service.yaml
+gcloud alpha container kubectl create -f kubernetes/replicated/services/session-mysql-service.yaml
+
+# Create microservices pods and services
+gcloud alpha container kubectl create -f kubernetes/replicated/pods/frontend-pod.json
+gcloud alpha container kubectl create -f kubernetes/replicated/services/frontend-service.json
+
+gcloud alpha container kubectl create -f kubernetes/replicated/pods/authentication-pod.json
+gcloud alpha container kubectl create -f kubernetes/replicated/services/authentication-service.json
+
+gcloud alpha container kubectl create -f kubernetes/replicated/pods/authorisation-pod.json
+gcloud alpha container kubectl create -f kubernetes/replicated/services/authorisation-service.json
+
+gcloud alpha container kubectl create -f kubernetes/replicated/pods/session-pod.json
+gcloud alpha container kubectl create -f kubernetes/replicated/services/session-service.json
+
+gcloud alpha container kubectl create -f kubernetes/replicated/pods/person-pod.json
+gcloud alpha container kubectl create -f kubernetes/replicated/services/person-service.json
+
+# Create Nginx pod and service with load balancer
+gcloud alpha container kubectl create -f kubernetes/replicated/pods/nginx-lua-pod.json
+gcloud alpha container kubectl create -f kubernetes/replicated/services/nginx-lua-service.json
+
+# Allow external web access
+gcloud compute firewall-rules create k8s-replicated-ms-auth-node-80 --allow tcp:80 --target-tags k8s-replicated-ms-auth-node
+
+# DEBUG
+# check pod logs with `gcloud alpha container kubectl log nginx-lua-2mspc`,
+# ssh onto node with `gcloud compute ssh k8s-replicated-ms-auth-node-1`, access container `sudo docker exec -it CONTAINERID bash`
+</code></pre>
+<h2><a id="user-content-clean-up" class="anchor" href="https://github.com/stevenalexander/docker-authentication-authorisation/blob/master/kubernetes.md#clean-up"></a>Clean up</h2>
+<pre><code>gcloud alpha container clusters delete replicated-ms-auth
+gcloud compute firewall-rules delete k8s-replicated-ms-auth-node-80
+gcloud compute disks delete replicated-session-mysql-disk
+gcloud compute disks delete replicated-person-mysql-disk
+
+# NOTE you must delete these as if you try to recreate your service with `createExternalLoadBalancer=true` it will fail
+# silently if existing target-pools and forwarding-rules exist for your nodes
+# Get IDs from `gcloud compute forwarding-rules list` and `gcloud compute target-pools list`
+gcloud compute forwarding-rules delete RULEID
+gcloud compute target-pools delete POOLID
+</code></pre>
+<h2><a id="user-content-conclusion" class="anchor" href="https://github.com/stevenalexander/docker-authentication-authorisation/blob/master/kubernetes.md#conclusion"></a>Conclusion</h2>
+<p>I'm very impressed with how easy it was make <a href="https://github.com/GoogleCloudPlatform/kubernetes/blob/master/docs/pods.md">Pods</a> and <a href="https://github.com/GoogleCloudPlatform/kubernetes/blob/master/docs/services.md">services</a> for each of my microservices. While there is an individual json/yaml definition file per pod and service, most are identical except for names/labels and minor configuration. Kubernetes wires together services (which are available across the cluster) out of the pods using labels, so any pod labelled "name=authentication" is selected as part of the Authentication service. Traffic to services is distributed across the pods randomly by <a href="https://github.com/GoogleCloudPlatform/kubernetes/blob/master/docs/services.md#user-content-portals-and-service-proxies">kube-proxy</a> running on each node.</p>
+<p>It took a little bit of time to understand that the pods are hosted randomly across the cluster nodes, their host location isn't meant to be important as the pods can be created and destroyed as needed on the cluster. In this setup you could kill individual pods and the replication controllers would just spin up replacements. Even killing individual cluster nodes should not affect the system, as there are redundant pods spread across the other nodes.</p>
+<p>While I've created this solution using Google Cloud platform and tools Kubernetes is platform independent, so you can create your own cluster on any servers (see here for a <a href="https://access.redhat.com/articles/1198103">redhat tutorial</a>). This means you aren't locked into a provider and can deploy your solution using Kubernetes for controlling your containers on multiple providers and still meet project specific hosting requirements on production (security etc.)</p>
+<p>Future improvements and questions:</p>
+<ul>
+<li>Use environmental variables for configuration rather than hard coding in the docker files</li>
+<li>Find a better way to manage logging/monitoring (graphite container?)</li>
+<li>Find a better way to startup and restart pods</li>
+<li>Find a way to force nodes to retrieve the latest version of the image from a repository (currently its caching and not checking for updates)</li>
+<li>Fully script building the cluster</li>
+<li>How to do rolling updates</li>
+<li>How to manage database updates/migrations/backups</li>
+</ul>

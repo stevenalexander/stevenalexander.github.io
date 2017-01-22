@@ -1,0 +1,62 @@
+---
+layout: post
+title: LINUX - Setup Ruby/Sinatra/Unicorn/NGINX server
+date: 2012-08-09 15:58:00.000000000 +01:00
+type: post
+published: true
+status: publish
+categories:
+- ruby
+- Setup
+tags: []
+meta:
+  _original_post_id: ''
+  _original_import_author: Steven A
+  _edit_last: '46212493'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+excerpt: 'Quick intro in angry split personality QA format: Ya What? Unicorns? Sinatra??
+  Nuggex??? You''re just stringing random words together! Badly! Ok, it''s a lot of
+  tech words, here''s the breakdown: Ruby - Lovely scripting language that makes it
+  easy to...'
+---
+<p>
+<p>Quick intro in angry split personality QA format:</p>
+<p><em>Ya What? Unicorns? Sinatra?? Nuggex??? You're just stringing random words together! Badly!</em></p>
+<p>Ok, it's a lot of tech words, here's the breakdown:</p>
+<ul>
+<li><a href="http://www.ruby-lang.org/en/about/">Ruby</a>&nbsp;- Lovely scripting language that makes it easy to write clear concise code</li>
+<li><a href="http://www.sinatrarb.com/intro.html">Sinatra</a>&nbsp;- Framework for creating web applications in Ruby, very simple to use</li>
+<li><a href="http://unicorn.bogomips.org/">Unicorn</a>&nbsp;- Quick and reliable HTTP server for Ruby</li>
+<li><a href="http://nginx.org/en/">NGINX</a>&nbsp;- (n-gin-x) HTTP server and reverse proxy, ultra quick for static files</li>
+</ul>
+<p><em>Why? You could be drinking beer at home?</em></p>
+<p>Using Unicorn and NGINX together we get the best of both for hosting our site, Unicorn handles the requests to the Ruby app and NGINX handles the static public files (Images/CSS/JS). GitHub posted a&nbsp;<a href="https://github.com/blog/517-unicorn">blog</a>&nbsp;why they switched to Unicorn and the benefits.</p>
+<p><em>Fine! Lets get this over with then!</em></p>
+<p>Steps in this sample done in AWS EC2 Ubuntu 11.10 image:</p>
+<ol>
+<li><a href="http://wiki.nginx.org/Install">Install NGINX</a></li>
+<li><a href="http://wiki.nginx.org/NginxCommandLine">Start NGINX</a>&nbsp;and test -&nbsp;<em>"/etc/init.d/nginx start"</em>&nbsp;but location of nginx depends on distro</li>
+<li><a href="http://www.ruby-lang.org/en/downloads/">Install Ruby</a>&nbsp;-&nbsp;<em>"sudo apt-get install ruby1.9.1-dev"</em>&nbsp;(actually installs 1.9.2), need dev version for gems</li>
+<li>Install Ruby gems
+<ol>
+<li>Install make -&nbsp;<em>"sudo apt-get install make"</em>&nbsp;(may already be installed)</li>
+<li>Install gcc -&nbsp;<em>"sudo apt-get install gcc"</em>&nbsp;(may already be installed)</li>
+<li>Install gems -&nbsp;<em>"sudo gem install unicorn sinatra"</em></li>
+</ol>
+</li>
+<li>Check unicorn is working&nbsp;<em>"unicorn -version"&nbsp;</em>(if not check Ruby gems installed and are in path)</li>
+<li>TODO make simple sinatra app</li>
+<li>Test site</li>
+<li>TODO make config.ru</li>
+<li>TODO make unicorn.conf</li>
+<li>TODO mkdir /var/run/unicorn with perms to write</li>
+<li>start unicorn</li>
+<li>Add new nginx conf</li>
+<li>restart nginx</li>
+<li>Test site!</li>
+</ol>

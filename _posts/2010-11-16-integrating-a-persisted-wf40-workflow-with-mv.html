@@ -1,0 +1,66 @@
+---
+layout: post
+title: Integrating a persisted WF4.0 Workflow with MVC
+date: 2010-11-16 11:48:00.000000000 +00:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- mvc
+- net
+- wf
+- workflow
+meta:
+  _original_post_id: ''
+  _original_import_author: Steven A
+  _edit_last: '46212493'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+excerpt: Introduction Writing this as lately I've been interested in WF4.0 (it's always
+  pronounced "dub-F" in my head) and saw a post about using WF with MVC to handle
+  a site registration wizard. The tutorial it linked to used a state machine (WF only
+  supp...
+---
+<p><strong><span style="font-size:medium;">Introduction</span></strong></p>
+<p>Writing this as lately I've been interested in WF4.0 (it's always pronounced "dub-F" in my head) and saw a post about using WF with MVC to handle a site registration wizard. The <a href="http://dotnetslackers.com/articles/aspnet/Multiple-Step-Based-Registration-via-ASP-NET-MVC-2-WF-4.aspx" target="_blank">tutorial </a>it linked to used a state machine (WF only supports Sequential OOB) workflow without persistence, which made me think that you could easily use a normal workflow with persistence to do a lot of other things inside a web application. WF which is part of .NET4.0 allows you to easily create and call workflow processes, small or large, from anywhere inside .NET code and it's been drastically improved since .NET3.5. That ease makes it practical to use workflow in places which it was previously too complicated to integrate, places where we normally manually code a process into business or web logic making it difficult to maintain and add standard features like tracing/auditing.</p>
+<p>To run the sample or try this yourself you will need .NET4.0 and Visual Studio 2010, the instructions below are a simple overview and do not include all code or references.</p>
+<p><strong><span style="font-size:medium;">1. Creating the WF SQL Persistence store</span></strong></p>
+<p><span style="font-size:medium;"><span style="font-size:small;">WF4.0 supports using a default SQL Persistence store, using a DB created using scripts in the .NET4.0 framework directory. Simply create a new DB (call it whatever you like) on your server and run the following scripts:</span><br />
+</span></p>
+<ol>
+<li>C:WindowsMicrosoft.NETFrameworkv4.0.21006SQLenSqlWorkflowInstanceStoreSchema.sql</li>
+<li>C:WindowsMicrosoft.NETFrameworkv4.0.21006SQLenSqlWorkflowInstanceStoreLogic.sql</li>
+</ol>
+<p>Multiple workflows can share the same DB or you can separate them out if you want.</p>
+<p><strong><span style="font-size:medium;">2. Creating the MVC site and Workflow Activity Library</span></strong></p>
+<div class="p_embed p_image_embed"><img alt="Solution" src="{{ site.baseurl }}/assets/6ac9d-solution-scaled500.png" width="238" height="618" /></div>
+<p>In Visual Studio, create a new MVC Web Application and add another project of type "Activity Library" (under templates Workflow) to hold your workflow. I also added a console application to test the workflow independently but this is not necessary.</p>
+<p><strong><span style="font-size:medium;">3. Creating the Workflow</span></strong></p>
+<div class="p_embed p_image_embed"><a href="http://stevenwilliamalexander.files.wordpress.com/2010/11/workflow_logic-scaled1000.png"><img alt="Workflow_logic" src="{{ site.baseurl }}/assets/workflow_logic-scaled1000.png?w=300" width="500" height="411" /></a></div>
+<div class="p_embed p_image_embed"><a href="http://stevenwilliamalexander.files.wordpress.com/2010/11/wizardstep-scaled1000.png"><img alt="Wizardstep" src="{{ site.baseurl }}/assets/wizardstep-scaled1000.png?w=300" width="500" height="480" /></a></div>
+<p>Delete the existing workflow activity and create a new one with the name WizardActivity, in the activity drag and drop a Flowchart from the toolbox onto the workflow (using this instead of a state machine) and add a variable "Outcome" to the Flow chart scope (used to store the outcome Next/Back of the steps). In the Activtiy project add a new Class, WizardStep, which will be generic custom activity used for all the steps in the workflow. This activity contains the bookmark code which is used to halt and persist the workflow at the steps. Add the code and compile the project, this will update the workflow toolbox adding WizardStep and allowing you to drag and drop it onto the workflow. Add three Wizard steps to the workflow, setting the Name to "Step<em>N</em>", Bookmark Name to "Step<em>N</em>" and Input to "Outcome" (this is an output parameter which will set Outcome to the value supplied when resuming the Bookmark in the custom activity). Add a custom Complete activity (which does nothing) and link up the workflow using Decision controls (set condition to "Outcome.Equals("Next")") and arrows as per image. Lastly add a new Class WizardHostHelper (copy code from sample), which acts as the host for the workflow; creating the Workflow application object, setting instance store values, starting/resuming the workflow, actioning the bookmarks.</p>
+<p><strong><span style="font-size:medium;">4. Update the MVC application to use the Workflow</span></strong></p>
+<p>Now to integrate the workflow into the website.</p>
+<ol>
+<li>Add a new class WizardModels, to hold the model logic for the wizard steps and workflow service (wrapper to WizardHostHelper).</li>
+<li>Add a new controller WizardController, for controller logic used in the wizard.</li>
+<li>Add four new views under Wizard, Step1-3 and final, for the views used in the Wizard.</li>
+<li>Update AccountModel, add a Guid parameter workflowKey to the MembershipService.CreateUser method, this will store the Workflow Instance key in the standard ASP user security providerUserKey. Also add a method GetUserWorkflowKey to return the key for a username.</li>
+<li>Update AccountController, changing Register method to start a workflow instance for the user using the WizardModels.WorkflowService and supply the workflow key into CreateUser. Update both Register and Logon to redirect action to the Wizard index.</li>
+<li>Update the web.config to set the instance store connection string.</li>
+</ol>
+<div class="p_embed p_image_embed"><a href="http://stevenwilliamalexander.files.wordpress.com/2010/11/step1-scaled1000.png"><img alt="Step1" src="{{ site.baseurl }}/assets/step1-scaled1000.png?w=300" width="500" height="316" /></a></div>
+<p>And that should be it, registering a new user will now start the workflow process and redirect to the first step. Next/Back buttons on the step views cause the controller to action the steps, progressing the workflow. The workflow is persisted to the DB at each step, so even if the website goes down the current step of the user in the workflow is maintained. The workflow, rather than the controller, decides which step the website should display, separating the process logic from the controller logic.</p>
+<p>There is very little code involved, just small service/host classes used to access the workflow and integrate with the website. To add persistence it only really took two lines of code in the host class (setting the workflow application instance store and telling it to persist when idle at the bookmarks), compared to the tutorial sample host. The workflow used could be much more complicated, branching to different steps depending on user response (e.g. redirecting to a different address screen if the user isn't based in the UK) without adding complexity to the controller logic. As the workflow is separated from the website it can be tested independently (no website needed! automated testing!) and updated without large changes needed in the website. It's also a very light weight (and cheap) way to add workflow, which is something we may need going forward. I'm currently looking at ways now to use WF with persistence in Azure cloud (without the upcoming Azure AppFabric) for simple workflow solutions, as right now we can't use our current workflow applications like K2.</p>
+<p>Attached sample inside word doc as Posterous won't accept zips.</p>
+<div class="&lt;br /&gt;<br />
+p_embed p_file_embed">
+<div class="p_icon"></div>
+<div class="p_text">MVCWithWF_sample_attached.doc</div>
+<div class="p_text"><a href="http://stevenwilliamalexander.files.wordpress.com/2010/11/4421177-mvcwithwf_sample_attached.doc">4421177-MVCWithWF_sample_attached</a></div>
+</div>

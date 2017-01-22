@@ -1,0 +1,57 @@
+---
+layout: post
+title: Using Git Deploy Keys for automating remote deployments
+date: 2012-10-05 08:43:00.000000000 +01:00
+type: post
+published: true
+status: publish
+categories:
+- Dev
+- Setup
+tags: []
+meta:
+  _original_post_id: ''
+  _original_import_author: Steven A
+  _edit_last: '46212493'
+  _oembed_652d941ab870f40068700156ddefb780: "{{unknown}}"
+  _oembed_a4794d14ed6b337a7cf45ee86925997c: "{{unknown}}"
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+excerpt: You can use Git Deploy Keys to avoid needing to remote onto servers, pull,
+  enter creds and restart the server. Create your deploy keys in git (see https://help.github.com/articles/managing-deploy-keys)
+  Add the key to your server If you have multip...
+---
+<p>You can use Git Deploy Keys to avoid needing to remote onto servers, pull, enter creds and restart the server.</p>
+<ol>
+<li>Create your deploy keys in git (see <a href="https://help.github.com/articles/managing-deploy-keys)">https://help.github.com/articles/managing-deploy-keys)</a></li>
+<li>Add the key to your server
+<ul>
+<li>If you have multiple projects you will need to config your ssh keys specifically for each project (see <a href="http://nerderati.com/2011/03/simplify-your-life-with-an-ssh-config-file/)">http://nerderati.com/2011/03/simplify-your-life-with-an-ssh-config-file/)</a></li>
+<li>vim ~/user/.ssh/config</li>
+<li>Host github-project1</li>
+<li>&nbsp; &nbsp; User git</li>
+<li>&nbsp; &nbsp; HostName github.com</li>
+<li>&nbsp; &nbsp; IdentityFile ~/.ssh/github.project1.key</li>
+</ul>
+</li>
+<li>Git clone/set remote for project via ssh
+<ul>
+<li>git clone git@github-project1:orgname/some_repository.git</li>
+</ul>
+</li>
+<li>Write scripts to start/stop/pull your app</li>
+<li>Call the script remotely via ssh
+<ul>
+<li><span style="color:#222222;font-family:arial, sans-serif;">ssh user</span><a href="mailto:ubuntu@176.34.251.51" style="color:#1155cc;font-family:arial, sans-serif;">@99.99.99.9</a>9<span style="color:#222222;font-family:arial, sans-serif;">&nbsp;'source ~/.bash_profile;</span><br style="color:#222222;font-family:arial, sans-serif;" /><span style="color:#222222;font-family:arial, sans-serif;">~/user/myscript</span><span style="color:#222222;font-family:arial, sans-serif;">.sh'</span></li>
+</ul>
+</li>
+</ol>
+<p><span style="color:#222222;font-family:arial, sans-serif;">Traps:</span></p>
+<ul>
+<li><span style="color:#222222;font-family:arial, sans-serif;">use user "git" in /.ssh/config for the host reference, otherwise github will reject requests</span></li>
+<li><span style="color:#222222;font-family:arial, sans-serif;">include 'source ~/.bash_profile' (or .bashrc, /etc/profile) in your script call to include environmental variables (ssh uses a very limited set by default)</span></li>
+</ul>

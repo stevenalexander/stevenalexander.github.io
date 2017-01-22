@@ -1,0 +1,98 @@
+---
+layout: post
+title: Microservice authentication and authorisation using Docker
+date: 2015-05-11 13:04:13.000000000 +01:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- authentication
+- authorisation
+- docker
+- dropwizard
+- lua
+- Microservice
+- nginx
+- openresty
+meta:
+  _thumbnail_id: '455'
+  _publicize_pending: '1'
+  _rest_api_published: '1'
+  _rest_api_client_id: "-1"
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p>I've created a sample implementation of the microservice authentication and authorisation pattern I described in a previous blog posts (<a href="https://stevenwilliamalexander.wordpress.com/2014/04/24/microservice-authentication-and-authorisation/">here</a> for pattern, <a href="https://stevenwilliamalexander.wordpress.com/2015/03/12/microservice-authentication-and-authentication-scaling/">here</a> for how it could scale). It uses <a href="http://nginx.org/">Nginx</a> with <a href="http://wiki.nginx.org/HttpLuaModule">Lua</a> and <a href="http://www.dropwizard.io/">Dropwizard</a> for the microservices, provisioned into containers using <a href="https://www.docker.com/">Docker</a>.</p>
+<p>Source: <a href="https://github.com/stevenalexander/docker-authentication-authorisation">here</a></p>
+<p>Requires:</p>
+<ul>
+<li><a href="https://www.docker.com/">Docker</a></li>
+<li><a href="http://boot2docker.io/">Boot2Docker</a></li>
+<li><a href="http://docs.docker.com/compose/">Docker-compose</a></li>
+<li>JDK (to compile java file locally)</li>
+<li><a href="https://gradle.org/">Gradle</a> (for build automation)</li>
+</ul>
+<p>I created this project to test using Docker as part of the development process to reduce the separation between developers and operations. The idea being that developers create and maintain both the code and the containers that their code will run in, including scripts/tools used to configure and setup those containers. Hopefully this will reduce the knowledge gap that forms a barrier between developers and operations in projects, causing problems when developers push code that breaks in production ("throwing over the wall" at operations).</p>
+<p>I'm aware that Docker and containers in general are not a cure-all for 'devOps', they are only an abstraction that tries to make your applications run in an environment as similar to production as possible and make deployment/setup more consistent. Containers running locally or on a test environment are not the same as the solution running on production. There are concerns about performance/networking/configuration/security which developers need to understand in order to produce truly production ready code that de-risks regular releases. Creating a 'devOps' culture to decrease the time necessary to release and increase quantity requires a change in process and thinking, not just technology.</p>
+<h2><a id="user-content-running-the-containers" class="anchor" href="https://github.com/stevenalexander/docker-authentication-authorisation#running-the-containers"></a>Running the containers</h2>
+<pre><code># Build microservices and copy their files into volume directories
+gradle buildJar
+
+# Run containers with dev architecture
+docker-compose -f dev-docker-compose.yml up
+
+# curl your boot2docker VM IP on port 8080 to get the login page, logs are stored in docker/volume-logs
+</code></pre>
+<h2><a id="user-content-details" class="anchor" href="https://github.com/stevenalexander/docker-authentication-authorisation#details"></a>Details</h2>
+<p>The solution is composed of microservices, using <a href="http://nginx.org/">nginx</a> as a reverse proxy and <a href="http://wiki.nginx.org/HttpLuaModule">Lua</a> scripts to control authentication/sessions. Uses <a href="https://www.docker.com/">Docker</a> and <a href="https://docs.docker.com/compose/">Docker Compose</a> to build container images which are deployed onto a Docker host VM.</p>
+<h3><a id="user-content-microservices" class="anchor" href="https://github.com/stevenalexander/docker-authentication-authorisation#microservices"></a>Microservices</h3>
+<p>The solution is split into small web services focused on a specific functional area so they can be developed and maintained individually. Each one has it's own data store and can be deployed or updated without affecting the others.</p>
+<ul>
+<li><a href="https://github.com/stevenalexander/docker-authentication-authorisation/tree/master/microservices/authentication">Authentication</a> - used to authenticate users against a set of stored credentials</li>
+<li><a href="https://github.com/stevenalexander/docker-authentication-authorisation/tree/master/microservices/authorisation">Authorisation</a> - used to check authenticated users permissions to perform actions</li>
+<li><a href="https://github.com/stevenalexander/docker-authentication-authorisation/tree/master/microservices/frontend">Frontend</a> - HTML UI wrapper for the login/person functionality</li>
+<li><a href="https://github.com/stevenalexander/docker-authentication-authorisation/tree/master/microservices/person">Person</a> - used to retrieve and update person details, intended as a simple example of an entity focused microservice which links into the Authorisation microservice for permissions</li>
+<li><a href="https://github.com/stevenalexander/docker-authentication-authorisation/tree/master/microservices/session">Session</a> - used to create and validate accessTokens for authenticated users</li>
+</ul>
+<p>There is an <a href="https://github.com/stevenalexander/docker-authentication-authorisation/tree/master/microservices/api">Api</a> library containing objects used by multiple services (for real solution should be broken up into API specific versioned libraries for use in various clients, e.g. personApi, authorisationApi).</p>
+<h3><a id="user-content-nginx-reverse-proxy" class="anchor" href="https://github.com/stevenalexander/docker-authentication-authorisation#nginx-reverse-proxy"></a>Nginx reverse proxy</h3>
+<p>Nginx is used as the reverse proxy to access the Frontend microservice and it also wires together the authentication and session management using Lua scripts. To provision the Nginx container I created a DockerFile which installs nginx with <a href="http://openresty.org/">OpenResty</a></p>
+<ul>
+<li><a href="https://github.com/stevenalexander/docker-authentication-authorisation/tree/master/docker/image-nginx-lua/Dockerfile">Dockerfile</a> - defines the Nginx container image, with modules for Lua scripting</li>
+<li><a href="https://github.com/stevenalexander/docker-authentication-authorisation/tree/master/docker/volume-nginx-conf.d/nginx.conf">nginx.conf</a> - main config for Nginx, defines the endpoints available and calls the Lua scripts for access and authentication</li>
+<li><a href="https://github.com/stevenalexander/docker-authentication-authorisation/tree/master/docker/volume-nginx-conf.d/access.lua">access.lua</a> - run anytime a request is received, defines a list of endpoints which do not require authentication and for other endpoints it checks for accessToken cookie in the request header then validates it against the Session microservice</li>
+<li><a href="https://github.com/stevenalexander/docker-authentication-authorisation/tree/master/docker/volume-nginx-conf.d/authenticate.lua">authenticate.lua</a> - run when a user posts to /login, calls the Authentication microservice to check the credentials, then calls the Session microservice to create an accessToken for the new authenticated session and finally returns a 302 response with the accessToken in a cookie for future authenticated requests.</li>
+<li><a href="https://github.com/stevenalexander/docker-authentication-authorisation/tree/master/docker/volume-nginx-conf.d/logout.lua">logout.lua</a> - run when a user calls /logout, calls the Session microservice to delete the users accessToken</li>
+</ul>
+<h4><a id="user-content-authentication-and-authorisation-sequence-diagram" class="anchor" href="https://github.com/stevenalexander/docker-authentication-authorisation#authentication-and-authorisation-sequence-diagram"></a>Authentication and authorisation sequence diagram</h4>
+<p><a href="https://raw.githubusercontent.com/stevenalexander/docker-authentication-authorisation/master/images/microservice-authentication-and-authorisation-sequence.png" target="_blank"><img title="sequence diagram" src="{{ site.baseurl }}/assets/microservice-authentication-and-authorisation-sequence.png" alt="Authentication and authorisation sequence diagram" /></a></p>
+<h3><a id="user-content-docker-containers-and-volumes" class="anchor" href="https://github.com/stevenalexander/docker-authentication-authorisation#docker-containers-and-volumes"></a>Docker containers and volumes</h3>
+<p>The interesting thing about using Docker with microservices is that you can define a container image per microservice then host those containers in various arrangements of Docker host machines to make your architecture. The containers can be created/destroyed easily, give guarantees of isolation from other containers and only expose what you define (ports/folders etc.). This makes them easily portable between hosts compared to something like a puppet module that needs more care and configuration to ensure it can operate on the puppet host.</p>
+<p>To develop and test the solution locally I used a development architecture defined in a <a href="http://docs.docker.com/compose/">Docker Compose</a> yaml file (<a href="https://github.com/stevenalexander/docker-authentication-authorisation/tree/master/dev-docker-compose.yml">here</a>). This created a number of containers with volumes and exposed ports then links them together appropriately.</p>
+<p>Below shows architectures which can be built using the containers.</p>
+<h4><a id="user-content-development-architecture" class="anchor" href="https://github.com/stevenalexander/docker-authentication-authorisation#development-architecture"></a>Development architecture</h4>
+<p><a href="https://raw.githubusercontent.com/stevenalexander/docker-authentication-authorisation/master/images/microservice-authentication-and-authorisation-simple-architecture.jpg" target="_blank"><img title="Development architecture diagram" src="{{ site.baseurl }}/assets/microservice-authentication-and-authorisation-simple-architecture.jpg" alt="Development architecture diagram" /></a></p>
+<p>This is a small scale architecture intended for local development. Developers can spin this up quickly and work on the full application stack. It uses a single Docker host (the boot2docker VM) with single containers for each microservice. This means that if any of the containers or services fail there is no redundancy.</p>
+<h4><a id="user-content-small-scaled-architecture" class="anchor" href="https://github.com/stevenalexander/docker-authentication-authorisation#small-scaled-architecture"></a>Small scaled architecture</h4>
+<p><a href="https://raw.githubusercontent.com/stevenalexander/docker-authentication-authorisation/master/images/microservice-authentication-and-authorisation-small-scaled-architecture.jpg" target="_blank"><img title="Small scaled architecture diagram" src="{{ site.baseurl }}/assets/microservice-authentication-and-authorisation-small-scaled-architecture.jpg" alt="Small scaled architecture diagram" /></a></p>
+<p>This is a larger scale architecture, using HAProxy to load balance and introduce redundancy. This architecture allows scaling the business microservices to handle increasing/decreasing load.</p>
+<h4><a id="user-content-large-scaling-architecture" class="anchor" href="https://github.com/stevenalexander/docker-authentication-authorisation#large-scaling-architecture"></a>Large scaling architecture</h4>
+<p><a href="https://raw.githubusercontent.com/stevenalexander/docker-authentication-authorisation/master/images/microservice-authentication-and-authorisation-large-scaling-architecture.jpg" target="_blank"><img title="Large scaling architecture diagram" src="{{ site.baseurl }}/assets/microservice-authentication-and-authorisation-large-scaling-architecture.jpg" alt="Large scaling architecture diagram" /></a></p>
+<p>This is an example production architecture, running on multiple Docker hosts with redundancy for all microservices and load balancing for the web servers. The number of hosts you have per container can be increased/decreased dynamically based on the individual load on each service and each container can be updated without downtime by rolling updates.</p>
+<p>On a real production architecture you would want to include:</p>
+<ul>
+<li>Healthchecks</li>
+<li>Monitoring (e.g. Dropwizard Metrics pushing to Graphite)</li>
+<li>Dynamic scaling based on load monitoring</li>
+<li>Periodic backups of peristed data</li>
+<li>Security testing</li>
+</ul>
+<h2><a id="user-content-conclusions" class="anchor" href="https://github.com/stevenalexander/docker-authentication-authorisation#conclusions"></a>Conclusions</h2>
+<p>I found working with Docker extremely easy, the tooling and available images made it simple to create containers to do what I needed. For development the speed I could create and start containers for the microservices was amazing, 5 secs to spin up the entire 6 container solution with Docker Compose. Compared to development using individual VMs provisioned by Puppet and Vagrant this was lightning fast. Accessing the data/logs on the containers was simple also, making debug a lot easier, and remote debug by opening ports was also possible.</p>
+<p>Still have some concerns about how production ready my containers would be and what I would need to do to make them secure. I did not touch on a lot of the work which would be necessary to create and provision the Docker hosts themselves, including configuration of the microservices and Nginx containers per host. For a reasonable sized architecture this would require a tool like Puppet anyway so would not save much effort on the operations side.</p>
+<p>I would like a chance to use some sort of containerisation in a real project and see how it works out, in the development side, operations for deployment in environment and in actual production use. For now I'd definitely recommend developers to try it out for defining and running their local development environments as an alternative to complex boxen/vagrant setups.</p>

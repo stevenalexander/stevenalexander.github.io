@@ -1,0 +1,66 @@
+---
+layout: post
+title: The incremental complexity trap
+date: 2016-03-16 17:06:27.000000000 +00:00
+type: post
+published: true
+status: publish
+categories:
+- design
+- Dev
+tags:
+- design
+- development
+- trap
+meta:
+  _thumbnail_id: '513'
+  _rest_api_published: '1'
+  _rest_api_client_id: "-1"
+  _publicize_job_id: '20819808506'
+  _oembed_143b7e63c129fecc359736230ca1f88a: '<div class="embed-slideshare"><iframe
+    src="https://www.slideshare.net/slideshow/embed_code/key/8UZrEGM7Oa0gCG" width="427"
+    height="356" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:1px
+    solid #CCC; border-width:1px; margin-bottom:5px; max-width: 100%;" allowfullscreen>
+    </iframe> <div style="margin-bottom:5px"> <strong> <a href="https://www.slideshare.net/julianhyde/querying-the-internet-of-things-streaming-sql-on-kafkasamza-and-stormtrident"
+    title=" Querying the Internet of Things: Streaming SQL on Kafka/Samza and Storm/Trident"
+    target="_blank"> Querying the Internet of Things: Streaming SQL on Kafka/Samza
+    and Storm/Trident</a> </strong> from <strong><a href="http://www.slideshare.net/julianhyde"
+    target="_blank">Julian Hyde</a></strong> </div></div>'
+  _oembed_time_143b7e63c129fecc359736230ca1f88a: '1460715251'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p>This is a common problem which developers face, particularly in agile projects when it's normal to make user stories related to previous user stories to add new functions to existing screens and flows.</p>
+<p>It happens all the time. You start with a something like a simple screen and do the necessary work to make it. Then you get a few new requirements, add some more fields and new validation for alternate user flow etc. You do the same, add the fields to your screens and logic to the controllers. Then it happens again, then again and again. More user flows are added, more fields appearing in some of those flows, more complex validation. Your original simple screen, controller and validation logic is now a monster, unmaintainable and a nightmare to debug.</p>
+<p>Often teams don't do anything to solve it, just live with the problems. Commonly by the time they realise what's happening it's easier just to keep layering on the complexity rather than deal with it properly. No one wants to be holding the bag when it's time to stop and refactor everything.</p>
+<p>This can be particularly bad if it's happening in multiple places at the same time during a project. The effects of shortsighted decisions start to snowball, affecting development speed and increasing regression issues, and it's not feasible to refactor everything (try selling a sprint full of that to a Product Owner).</p>
+<p><strong>So how do you avoid the trap?</strong></p>
+<ul>
+<li>Keep it simple</li>
+</ul>
+<p style="padding-left:60px;">Establish code patterns that encourage separation of concerns, make the team aware of them and how to repeat the patterns.</p>
+<ul>
+<li>Unit tests</li>
+</ul>
+<p style="padding-left:60px;">Test complexity helps highlight when things are getting out of hand before it's too late and make it much easier to refactor by reducing the chance of regression issues.</p>
+<ul>
+<li>Anticipate it before it happens and design</li>
+</ul>
+<p style="padding-left:60px;">This is the job of the Technical Architect, to know what requirements and stories are coming and how they will be implemented. If an area is going to get a lot of complexity it needs to be handled or you will end up in the trap.</p>
+<p><strong>What can you do if you are already in it?</strong></p>
+<ul>
+<li>Stop making it worse</li>
+</ul>
+<p style="padding-left:60px;">For complex classes stop adding new layers of logic. Obvious, but the temptation will be there. Stop and plan a better approach, as the sooner you do this the easier it will be.</p>
+<ul>
+<li>Don't try for perfection and refactor everything</li>
+</ul>
+<p style="padding-left:60px;">Big bang refactors are risky and time consuming. Take part of the complexity and split it out, establishing a pattern to remove more.</p>
+<ul>
+<li>Focus on your goals</li>
+</ul>
+<p style="padding-left:60px;">Overly complex classes aren't bad out of principle. They are bad because they slow development and give bugs places to hide. Refactoring and creating a framework to add new functionality can speed development and reduce occurance of defects, which also eat time. You should focus your effort on refactoring areas which will need more complexity later, investing time now to save more later.</p>

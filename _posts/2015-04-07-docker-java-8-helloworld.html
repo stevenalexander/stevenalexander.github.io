@@ -1,0 +1,46 @@
+---
+layout: post
+title: Docker Java 8 Helloworld
+date: 2015-04-07 14:56:24.000000000 +01:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- docker
+- example
+- image
+- java
+- java8
+meta:
+  _publicize_pending: '1'
+  _rest_api_published: '1'
+  _rest_api_client_id: "-1"
+  _oembed_c036d0cc427dd245b7ac348e18431a23: "{{unknown}}"
+  _oembed_6f0529ad12806cad32e0433f64415235: "{{unknown}}"
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p>Example <a href="https://www.docker.com/">Docker</a> image that when echos "Hello world!" when run.</p>
+<p>Source: <a href="https://github.com/stevenalexander/docker-java8-helloworld">https://github.com/stevenalexander/docker-java8-helloworld</a></p>
+<p><a href="https://raw.githubusercontent.com/stevenalexander/docker-java8-helloworld/master/terminal.gif" target="_blank"><img title="terminal gif" src="{{ site.baseurl }}/assets/terminal.gif" alt="terminal gif" /></a></p>
+<p>Image has JRE rather than JDK to limit installed components. Tested on Mac using <a href="http://boot2docker.io/">Boot2Docker</a>(v1.5.0).</p>
+<p>Requires:</p>
+<ul class="task-list">
+<li><a href="https://www.docker.com/">Docker</a></li>
+<li><a href="http://boot2docker.io/">Boot2Docker</a></li>
+<li>JDK (to compile java file locally)</li>
+</ul>
+<p>To run:</p>
+<pre><code># compile class
+javac helloworld.java
+
+# build image
+docker build -t java8-helloworld .
+
+# run image
+docker run -it --rm --name my-running-app java8-helloworld</code></pre>

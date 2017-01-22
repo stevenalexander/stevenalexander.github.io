@@ -1,0 +1,57 @@
+---
+layout: post
+title: Docker nginx/dropwizard with Travis CI
+date: 2015-04-17 11:18:46.000000000 +01:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- ci
+- docker
+- dropwizard
+- nginx
+- testing
+- travis
+meta:
+  _publicize_pending: '1'
+  _rest_api_published: '1'
+  _rest_api_client_id: "-1"
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p><a href="https://github.com/stevenalexander/docker-nginx-dropwizard">Source</a></p>
+<p><strong>Update:</strong> Can't recommend using Travis for this kind of CI, it turned out very flakey once I used actual images rather than the simple echo tool images. Builds would sometimes timeout after 15mins of hanging, either on building images or attaching. Not sure why, but I imagine Travis isn't really intended for loading multiple containers ~400meg in size (JVM+deps).</p>
+<p>Example using Docker to create an nginx image and dropwizard image, then link them together so nginx acts as a reverse proxy for Dropwizard. Can be extended to link together multiple Dropwizard applications. Uses <a href="http://docs.docker.com/compose/">Docker Compose</a> to create and configure the images.</p>
+<p><a href="https://raw.githubusercontent.com/stevenalexander/docker-nginx-dropwizard/master/terminal.gif" target="_blank"><img title="terminal gif" src="{{ site.baseurl }}/assets/terminal.gif" alt="terminal gif" /></a></p>
+<p>Requires:</p>
+<ul class="task-list">
+<li><a href="https://www.docker.com/">Docker</a></li>
+<li><a href="http://boot2docker.io/">Boot2Docker</a></li>
+<li><a href="http://docs.docker.com/compose/">Docker-compose</a></li>
+<li>JDK (to compile java file locally)</li>
+<li><a href="https://gradle.org/">Gradle</a> (for build automation)</li>
+</ul>
+<p>To run locally:</p>
+<pre><code>gradle run
+# ./go
+</code></pre>
+<p>To run containers:</p>
+<pre><code>gradle buildJar
+docker-compose up -d
+
+# retrieve your docker host IP from boot2docker
+boot2docker ip
+
+# curl dropwizard/nginx containers using docker host IP
+curl http://192.168.59.103:8080/hello
+curl http://192.168.59.103:8090/hello
+</code></pre>
+<h1><a id="user-content-details" class="anchor" href="https://github.com/stevenalexander/docker-nginx-dropwizard#details"></a>Details</h1>
+<p>The <code>docker-compose.yml</code> file configures the two images, creating a dropwizard container and linking it to an nginx container. With the link in place, docker creates a hosts entry for the dropwizard container which can be used in the nginx config <code>volumes-nginx-conf.d/default.conf</code> when setting up the reverse proxy.</p>
+<p>Based Travis build on <a href="https://github.com/moul/travis-docker">moul/travis-docker</a>.</p>
+<p>Using a client image to test the nginx/dropwizard images, as you cannot curl directly from Travis CI. Ideally, once Travis has started the containers in demonised form I would run a test script which uses curl/selenium to test the various endpoints exposed from nginx and hit dropwizard. If this needs to be done via the client then the results of the test can be output to a write-enabled volume and parsed to determine build result, as docker-compose will always return exit code 0 if the containers run.</p>

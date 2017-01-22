@@ -1,0 +1,49 @@
+---
+layout: post
+title: Managing data store changes in containers
+date: 2016-09-29 14:22:41.000000000 +01:00
+type: post
+published: true
+status: publish
+categories:
+- containerisation
+- node
+tags:
+- containerisation
+- database
+- docker
+- node
+meta:
+  _thumbnail_id: '704'
+  _rest_api_published: '1'
+  _rest_api_client_id: "-1"
+  _publicize_job_id: '27335933902'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p><img class="alignnone size-full wp-image-704" src="{{ site.baseurl }}/assets/docker-container-ci-data-migrations.png" alt="docker-container-ci-data-migrations" width="1014" height="588" /></p>
+<p>When creating microservices it's common to keep their <a href="http://microservices.io/patterns/data/database-per-service.html">persistence stores loosely coupled </a>so that changes to one service do not affect others. Each service should manage it's own concerns, be the owner of retrieving/updating it's data and define how and where it gets it from.</p>
+<p>When using a relational database for a store there is an additional problem that each release may require schema/data updates, a known problem of <a href="https://en.wikipedia.org/wiki/Schema_migration">database migration (schema migration/database change management)</a>.</p>
+<p>There a large number of tools for doing this; <a href="https://flywaydb.org/">flyway</a>, <a href="http://www.liquibase.org/">liquibase</a>, <a href="https://dbup.github.io/">DbUp</a>. They allow you to define the schema/data for your service as a series of ordered migration scripts, which can be applied to your database regardless of it's state as a fresh DB or existing one with production data.</p>
+<p>When your container service needs a relational database with a specific schema and you are performing continuous delivery you will need to handle this problem. Traditionally this is handled separately from the service by CI, where a Jenkins/Teamcity task runs the database migration tool before the task to deploy the updated release code for the service. You will have similar problems with containers that require config changes to non-relational stores (redis/mongo etc.).</p>
+<p>This is still possible in a containerised deployment, but has disadvantages. Your CI will need knowledge/connection to each containers data store, and run the task for each container with a store. As the number of containers increase this will add more and more complexity into your CI which will need to be aware of all their needs and release changes.</p>
+<p>To prevent this from happening the responsibility of updating their persistence store should be on developer for the container itself, as part of the containers definition, code and orchestration details. This allows the developers to define what their persistence store is and how it should be updated each release, leaving CI only responsible for deploying the latest version of the containers.</p>
+<pre><code>node_modules/.bin/knex migrate:latest --env development</code></pre>
+<p>As an example of this I created a simple <a href="https://github.com/stevenalexander/node-people-api">People API</a> node application and container, which has a dependency on a mysql database with people data. Using <a href="http://knexjs.org/#Migrations">Knex</a> for database migration, the source defines the <a href="https://github.com/stevenalexander/node-people-api/tree/master/migrations">scripts</a> necessary to setup the database or upgrade it to the latest version. The <a href="https://github.com/stevenalexander/node-people-api/blob/master/Dockerfile">Dockerfile</a> startup command waits for the database to be available then runs the migration before starting the Node application. The containers necessary for the solution and the dependency on mysql are defined and configured in the <a href="https://github.com/stevenalexander/node-people-api/blob/master/docker-compose.yml">docker-compose.yml</a>.</p>
+<pre><code>docker-compose up</code></pre>
+<p>For a web application example I created <a href="https://github.com/stevenalexander/node-people-web">People Web</a> node application, that wraps the API and displays the results as HTML. It has a <a href="https://github.com/stevenalexander/node-people-web/blob/master/docker-compose.yml">docker-compose.yml</a> that spins up containers for <strong>mysql</strong>, <strong>node-people-api</strong> (using the latest image pushed to <a href="https://hub.docker.com">Docker Hub</a>) and itself. As node-people-api manages it's own store inside the container node-people-web doesn't need any knowledge of the migration scripts to setup the mysql database.</p>
+<h3>Links</h3>
+<ul>
+<li><a href="https://github.com/stevenalexander/node-people-api">People API source</a> (<a href="https://hub.docker.com/r/stevenalexander/node-people-api/">docker hub</a>)</li>
+<li><a href="https://github.com/stevenalexander/node-people-web">People Web source</a> (<a href="https://hub.docker.com/r/stevenalexander/node-people-web/">docker hub</a>)</li>
+<li><a href="http://knexjs.org/">Knex</a></li>
+<li>Related
+<ul>
+<li><a href="https://docs.docker.com/engine/tutorials/dockervolumes/">Docker - Manage data in containers</a></li>
+</ul>
+</li>
+</ul>

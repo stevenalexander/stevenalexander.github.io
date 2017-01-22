@@ -1,0 +1,54 @@
+---
+layout: post
+title: Microservice authentication and authentication scaling
+date: 2015-03-12 16:52:21.000000000 +00:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- authentication
+- authorisation
+- haproxy
+- Microservice
+- scale
+- scaling
+meta:
+  _wpas_skip_facebook: '1'
+  _wpas_skip_google_plus: '1'
+  _wpas_skip_twitter: '1'
+  _wpas_skip_linkedin: '1'
+  _wpas_skip_tumblr: '1'
+  _wpas_skip_path: '1'
+  _thumbnail_id: '434'
+  _publicize_pending: '1'
+  _rest_api_published: '1'
+  _rest_api_client_id: "-1"
+  _edit_last: '46212493'
+  geo_public: '0'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p>In a previous <a href="https://stevenwilliamalexander.wordpress.com/2014/04/24/microservice-authentication-and-authorisation/">post</a> I put up the sequence diagram below describing a design for implementing authentication and authorisation using Microservices.</p>
+<p><a href="https://stevenwilliamalexander.files.wordpress.com/2014/04/microservice-authentication-and-authorisation-seq.png"><img class="alignnone size-medium wp-image-391" src="{{ site.baseurl }}/assets/microservice-authentication-and-authorisation-seq.png?w=300" alt="Microservice authentication and authorisation seq" width="300" height="273" /></a></p>
+<p>What I didn't cover was the advantages of this approach when scaling your services. Authentication and authorisation are needed by most parts of your system so they easily become a performance bottle neck. Any service in your system which needs to authenticate a user or check their permissions will need to access a central data source holding this data. Outside a monolith architecture (which has it's own problems) this can be difficult, as a varying number of services will need to perform these functions so it needs to scale with them.</p>
+<p>This is one of the classic arguments for microservices, as its easier to scale a small focused service doing one thing rather than a large application with many dependencies and data sources.</p>
+<p>Here's the most basic architecture using the microservice authentication and authorisation design above:</p>
+<p><a href="https://stevenwilliamalexander.files.wordpress.com/2015/03/ms-auth-and-authorisation-simple-architecture.jpg"><img class="alignnone size-medium wp-image-433" src="{{ site.baseurl }}/assets/ms-auth-and-authorisation-simple-architecture.jpg?w=300" alt="MS auth and authorisation - simple architecture" width="300" height="179" /></a></p>
+<p>This architecture can only scale vertically, by increasing the specification of the single web server. If just one of the services hosted on the box is getting a lot of requests, like the authorisation box dealing with permission checks from 10 business services, then the performance of the whole application is affected. Increasing the processor and memory can only help you so much in this situation, and of course the system has multiple single points of failure.</p>
+<p>Now here's what is possible if you use load balancers and partition your microservices into separate servers:</p>
+<p><a href="https://stevenwilliamalexander.files.wordpress.com/2015/03/ms-auth-and-authorisation-scaled-architecture.jpg"><img class="alignnone size-medium wp-image-434" src="{{ site.baseurl }}/assets/ms-auth-and-authorisation-scaled-architecture.jpg?w=300" alt="MS auth and authorisation - scaled architecture" width="300" height="247" /></a></p>
+<p>This architecture can scale horizontally, by increasing the number of server instances for the specific services that are experiencing heavy load. This may seem overly complex but really if your application needs to scale well this is the only practical way to do it. It can also save hosting costs, since as well as being able to scale up (increase instances) you can scale down (reduce instances) when individual services are not under much load. The costs for a single high spec server on all the time are normally higher than multiple tiny instances being turned on and off automatically.</p>
+<p>The tools necessary to implement this architecture are now very mature (haproxy, Puppet, Docker, etc.) and Cloud IaaS providers are offering better tools for managing your instances automatically.</p>
+<p>Useful links</p>
+<ul>
+<li><a href="http://www.haproxy.org/">haproxy</a></li>
+<li><a href="http://thenewstack.io/haproxy-still-an-arrow-in-the-quiver-for-those-scaling-apps/">Examples of scaling sites using haproxy</a></li>
+<li><a href="http://java.dzone.com/articles/scaling-restful-microservice">Scaling Microservices</a></li>
+<li><a href="http://www.slideshare.net/stonse/microservices-at-netflix?related=1">MicroServices at Netflix - challenges of scale</a></li>
+<li><a href="https://www.docker.com/">Docker - partitioning services</a></li>
+</ul>

@@ -1,0 +1,99 @@
+---
+layout: post
+title: Sample Vagrant/Puppet AngularJS application using Dropwizard
+date: 2014-12-09 16:16:51.000000000 +00:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- angularjs
+- dropwizard
+- example
+- nginx
+- puppet
+- sample
+- vagrant
+meta:
+  _publicize_pending: '1'
+  _rest_api_published: '1'
+  _rest_api_client_id: "-1"
+  _wpas_skip_facebook: '1'
+  _wpas_skip_google_plus: '1'
+  _wpas_skip_twitter: '1'
+  _wpas_skip_linkedin: '1'
+  _wpas_skip_tumblr: '1'
+  _wpas_skip_path: '1'
+  _thumbnail_id: '418'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p>I made a simple example showing how to provision a Ubuntu 14.04 Nginx web server VM hosting a sample <a href="https://angularjs.org/">AngularJS</a> application with <a href="https://dropwizard.github.io/dropwizard/">Dropwizard</a> web service using <a href="https://www.vagrantup.com/">Vagrant</a> and <a href="https://puppetlabs.com/">Puppet</a>.</p>
+<p>Source <a href="https://github.com/stevenalexander/vagrant-ubuntu-14-nginx-angularjs-dropwizard">here</a>.</p>
+<p>[caption id="attachment_418" align="alignnone" width="300"]<a href="https://stevenwilliamalexander.files.wordpress.com/2014/12/screen-shot-2014-12-09-at-16-13-04.png"><img class="size-medium wp-image-418" src="{{ site.baseurl }}/assets/screen-shot-2014-12-09-at-16-13-04.png?w=300" alt="AngularJS sample Persons application with Dropwizard as backend" width="300" height="169" /></a> AngularJS sample Persons application with Dropwizard as backend[/caption]</p>
+<p><img class="alignnone size-medium wp-image-419" src="{{ site.baseurl }}/assets/screen-shot-2014-12-09-at-16-13-14.png?w=300" alt="Screen Shot 2014-12-09 at 16.13.14" width="300" height="197" /></p>
+<p>Created and tested on Mac OSX 10.9.5, Vagrant 1.6.3, VirtualBox 4.3.6, otherwise using versions/boxes given in VagrantFile and Puppet config.</p>
+<p>Requires:</p>
+<ul class="task-list">
+<li><a href="https://www.vagrantup.com/">Vagrant</a></li>
+<li><a href="http://www.gradle.org/">gradle</a></li>
+</ul>
+<p>This is meant as an example of how to use puppet to provision a web application using multiple components, with nginx handling routing. I plan on building this up into a fully fledged microservice solution.</p>
+<h2><a id="user-content-start" class="anchor" href="https://github.com/stevenalexander/vagrant-ubuntu-14-nginx-angularjs-dropwizard#start"></a>Start</h2>
+<pre><code># Get JS and CSS library resources (AngularJS and Bootstrap) for the site
+# using npm and bower and compiles the Dropwizard Application as a fat jar
+./update_dependencies.sh
+
+# Starts up VM and runs puppet to setup, downloading box if necessary
+vagrant up
+
+# On completion nginx should be running and the AngularJS site accessible
+# from host at http://192.168.33.10
+</code></pre>
+<h2><a id="user-content-running-and-testing-locally" class="anchor" href="https://github.com/stevenalexander/vagrant-ubuntu-14-nginx-angularjs-dropwizard#running-and-testing-locally"></a>Running and testing locally</h2>
+<p>The AngularJS site lives in the site_content puppet module and can be run using npm and tested.</p>
+<p>It uses a config module 'appConfig' held in config.js to hold the web service URL it uses for calling Dropwizard to get Person JSON, so a different config.js file is copied into the app folder depending on whether it is running locally or on VM were it uses an Nginx proxy to route calls. When running locally dropwizard is on http://localhost:8095/api, which will cause cross domain scripting errors unless you run browser with reduced security ("--args --disable-web-security" on Chrome).</p>
+<pre><code># run local (requires dropwizard)
+./run_local.sh
+
+# test
+./run_unit_tests.sh
+
+# e2e protractor tests (requires app and dropwizard running locally)
+./run_e2e_tests.sh
+</code></pre>
+<p>The Dropwizard application requires <a href="http://www.gradle.org/">gradle</a> for build</p>
+<pre><code># run Dropwizard local
+./run_dropwizard_local.sh
+
+# test
+gradle test
+</code></pre>
+<h2><a id="user-content-puppet-details" class="anchor" href="https://github.com/stevenalexander/vagrant-ubuntu-14-nginx-angularjs-dropwizard#puppet-details"></a>Puppet details</h2>
+<h3><a id="user-content-java" class="anchor" href="https://github.com/stevenalexander/vagrant-ubuntu-14-nginx-angularjs-dropwizard#java"></a>Java</h3>
+<p>Used <a href="https://forge.puppetlabs.com/puppetlabs/java">puppetlabs-java</a> v1.1.2 module to puppetize installing java, added using:</p>
+<pre><code>puppet module install puppetlabs-java  --modulepath puppet/modules
+</code></pre>
+<p>On the version of ubuntu box I had the java module failed due to missing dependencies and needed to run 'sudo apt-get update' to find them. I added this to the vagrant script using a shell provisioner, though a better solution would be either run in puppet before java class or directly include all packages.</p>
+<p>I have created a custom module, dropwizard_service, to copy the dropwizard jar, config and upstart script to the server, then ensure the dropwizard service is running and will restart on changes to the jar or config.</p>
+<h3><a id="user-content-nginx" class="anchor" href="https://github.com/stevenalexander/vagrant-ubuntu-14-nginx-angularjs-dropwizard#nginx"></a>Nginx</h3>
+<p>Used <a href="https://forge.puppetlabs.com/jfryman/nginx">jfryman-nginx</a> v0.1.1 module to puppetize nginx, added using:</p>
+<pre><code>puppet module install jfryman-nginx  --modulepath puppet/modules
+</code></pre>
+<p>I created a custom puppet module site_content (puppet/modules/site_content) which ensures /var/www exists and deploys the AngularJS site.</p>
+<p>The manifest site.pp (puppet/manifests/site.pp) configures the nginx module to include a vhost entry for the site content and an upstream proxy to the dropwizard application. It took a while to understand how the nginx module actually works to create nginx conf files, it actually creates ones for both the proxy "nginx::resource::upstream" and the vhost "nginx::resource::vhost", with location entries being added to the vhost conf file.</p>
+<h2><a id="user-content-notes" class="anchor" href="https://github.com/stevenalexander/vagrant-ubuntu-14-nginx-angularjs-dropwizard#notes"></a>Notes</h2>
+<p>This is a bare bones example and does not include any security or configuration best practise, so do not use in production.</p>
+<p>Any change to the puppet files requires you to run 'vagrant provision' to update.</p>
+<h2><a id="user-content-possible-improvements" class="anchor" href="https://github.com/stevenalexander/vagrant-ubuntu-14-nginx-angularjs-dropwizard#possible-improvements"></a>Possible improvements</h2>
+<ul class="task-list">
+<li>Move the site content under src directory and build RPM with content instead of using explicit puppet module, that way site can be versioned and installed as RPM directly</li>
+<li>Package Dropwizard Application as RPM and install using Puppet for versioning</li>
+<li>HTTPS</li>
+<li>Run node tests as part of gradle build using gradle plugin</li>
+<li>I think the nginx config should not belong in site.pp, rather the module site_content or a different module</li>
+</ul>

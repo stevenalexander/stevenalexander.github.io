@@ -1,0 +1,34 @@
+---
+layout: post
+title: Testing Javascript d3 visualisations with jasmine and jasmine-jquery
+date: 2013-06-24 11:58:11.000000000 +01:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- D3
+- jasmine
+- javascript
+- jquery
+- ruby
+meta:
+  _edit_last: '46212493'
+  _publicize_pending: '1'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p>There's lot of d3 examples on the web but they mainly very simple tutorial examples, which is great for getting started but if you plan to have a complex set of visualisations you want to avoid duplicating JS in your different visualisations and do automated testing.</p>
+<p>I've created an <a href="https://github.com/stevenalexander/d3-testing">example</a> of how to write testable d3 javascript with inheritance so multiple visualisations can share common functionality. Having a base object for your visualisations means you can write common code once and automated testing allows you to validate changes without manual testing. Obviously there is a limit to how much you can or should test your visualisations without looking at them in browser, but this allows you to write testable code, do TDD coding and encourage re-use in your javascript.</p>
+<p><a href="http://stevenwilliamalexander.files.wordpress.com/2013/06/d3-testing.png"><img class="alignnone size-medium wp-image-351" alt="D3 Testing" src="{{ site.baseurl }}/assets/d3-testing.png?w=281" width="281" height="300" /></a></p>
+<p>Using jasmine to test the Javascript, extending jasmine with jasmine-jquery for jquery selectors and ruby (1.9.2+) to install dependencies (not required but makes life easier). I'll also use jasmine-headless to run tests without opening the browser.</p>
+<p><a href="http://stevenwilliamalexander.files.wordpress.com/2013/06/jasmine-suite.png"><img alt="Jasmine suite" src="{{ site.baseurl }}/assets/jasmine-suite.png?w=286" width="286" height="300" /></a></p>
+<p>Links:</p>
+<ul>
+<li><a href="https://github.com/stevenalexander/d3-testing">Source</a></li>
+<li><a href="http://stevenalexander.github.io/d3-testing/">Github page</a></li>
+</ul>

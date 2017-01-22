@@ -1,0 +1,46 @@
+---
+layout: post
+title: Session data is evil
+date: 2016-05-16 09:22:27.000000000 +01:00
+type: post
+published: true
+status: publish
+categories:
+- ".net"
+- Dev
+tags:
+- asp
+- design
+- net
+- rant
+- session
+- state
+- tempdata
+meta:
+  _thumbnail_id: '619'
+  _rest_api_published: '1'
+  _rest_api_client_id: "-1"
+  _publicize_job_id: '22858007618'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p>I've been working in ASP.MVC recently after working in Java for a long time. One of the things that struck me was the common use of session data in web application.</p>
+<p>Now I know that people can and do use abuse sessions in Java, but the default routing and ease of access make using it more tempting in ASP.MVC. The standard routing convention of "/Controller/Action/:id" means you need to explicitly code to use RESTful paths that give you multiple IDs in URLs like "order/2/item/3" for non-trivial scenarios, and out of the box convenience methods like "TempData" seem to offer magical persistence between requests. These incentives combine to make using session data the path of least resistance in ASP.MVC.</p>
+<p><img class=" size-full wp-image-619 aligncenter" src="{{ site.baseurl }}/assets/1487ta.jpg" alt="1487ta" width="300" height="249" /></p>
+<p>Any data stored in session is inherently unreliable and use of it makes load balancing and scaling your application much more difficult. Once you use it, each instance of your web application must be able to find the users session data to reliably handle requests. Since it's now extremely common to use multiple instances even for small applications (irresponsible not to for disaster recovery and redundancy) you will need to think about this before you deploy into production.</p>
+<p>It also adds hidden complexity to testing your application. Each endpoint which relies on state stored in session needs to be tested with that application state simulated. This means you have at least two places in your code defining and using the same semi-structured data, which makes your tests complex/fragile and your code harder to maintain.</p>
+<p><img class="  wp-image-626 aligncenter" src="{{ site.baseurl }}/assets/stelhi_silk_mill_lanco_broken_windows.jpg" alt="Stelhi_Silk_Mill_Lanco_broken_windows" width="341" height="228" /></p>
+<p>Once you make using session data part of your architecture it's very hard to refactor and remove it. That little innocent use of TempData to store details from the last request will spread as Developers think "If it was ok there then it's ok here..." and "one more can't hurt" (the broken windows theory). Now your user flows in the web application rely on session stored details to go from screen A to B to C, and refactoring them means re-writing and testing a lot of the view/controller logic to replace the data held in session.</p>
+<p>There are acceptable uses for session data in web application, authentication is the obivous one. What they have in common is having alternative flows to cope if session data is not found without breaking functionality.</p>
+<p>If you have an over reliance of session in your application you are making a flakey, hard to scale and maintain application that will at best limp into production. At worst it will fall over and take your users data with it.</p>
+<p>There are common patterns and methods to avoid needing session data, below are some links to help:</p>
+<ul>
+<li><a href="http://www.peej.co.uk/articles/no-sessions.html">Living without sessions</a></li>
+<li><a href="https://en.wikipedia.org/wiki/HATEOAS">Hypermedia as the Engine of Application State</a></li>
+<li><a href="http://www.gregshackles.com/asp-net-mvc-do-you-know-where-your-tempdata-is/">Where ASP stores tempdata</a></li>
+<li><a href="https://msdn.microsoft.com/en-us/library/ff647327.aspx">Microsoft's documentation on state management</a></li>
+</ul>

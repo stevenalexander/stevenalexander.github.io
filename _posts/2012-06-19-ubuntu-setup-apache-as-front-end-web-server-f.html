@@ -1,0 +1,49 @@
+---
+layout: post
+title: Ubuntu - Setup Apache as Front-end web server for Play 2.0 for multiple sites
+date: 2012-06-19 11:03:00.000000000 +01:00
+type: post
+published: true
+status: publish
+categories:
+- jvm
+- Setup
+tags:
+- amazonec2
+- play
+- proxy
+- ubuntu
+meta:
+  _original_post_id: ''
+  _original_import_author: Steven A
+  _edit_last: '46212493'
+  _oembed_700f6992497baec4f529b2179f8bb92d: "{{unknown}}"
+  _oembed_0cee48f33954e06dbca5ee9fef68591e: "{{unknown}}"
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+excerpt: Updated to add proxy permissions and single site config Writing this as I
+  ran into a couple of issues when setting up Apache as a front-end web server for
+  a Amazon EC2 instance running two applications in Play, which I wanted to address
+  from diffe...
+---
+<p><em>Updated to add proxy permissions and single site config</em></p>
+<p>Writing this as I ran into a couple of issues when setting up Apache as a front-end web server for a Amazon EC2 instance running two applications in Play, which I wanted to address from different domains with no port. The <a href="http://www.playframework.org/documentation/2.0.1/HTTPServer">Play instructions are ok</a>, but miss a couple of small things that tripped up a newb like me (not loading proxy http module or giving full path to modules).</p>
+<p>1. Install apache -&nbsp;<strong>sudo apt-get install apache2</strong></p>
+<p>2. Enable http_proxy module - <strong>sudo a2enmod proxy_http</strong></p>
+<p>3. Update apache2.conf - <strong>sudo vim /etc/apache2/apache2.conf</strong></p>
+<p>with the following:</p>
+<p><strong> </strong></p>
+<p><strong>&lt;VirtualHost *:80&gt;<br /> ProxyPreserveHost On<br /> ServerName mydomainheadheader1.com<br /> ProxyRequests off<br /> &lt;proxy *&gt;<br /> Order deny,allow<br /> Allow from all<br /> &lt;/proxy&gt;<br /> ProxyPass /excluded !<br /> ProxyPass / <a href="http://127.0.0.1:9000/">http://127.0.0.1:9000/</a><br /> ProxyPassReverse / <a href="http://127.0.0.1:9000/">http://127.0.0.1:9000/</a><br />&lt;/VirtualHost&gt;
+<p>&lt;VirtualHost *:80&gt;<br /> ProxyPreserveHost On<br /> ServerName&nbsp;</p>
+<p></strong><strong>mydomainheadheader2.com</strong><strong><br /> ProxyRequests off<br /> &lt;proxy *&gt;<br /> Order deny,allow<br /> Allow from all<br /> &lt;/proxy&gt;<br /> ProxyPass /excluded !<br /> ProxyPass / <a href="http://127.0.0.1:81/">http://127.0.0.1:81/</a><br /> ProxyPassReverse / <a href="http://127.0.0.1:81/">http://127.0.0.1:81/</a><br />&lt;/VirtualHost&gt;</strong></p>
+<p>If you are only proxying for a single site you don't need a VirtualHost, just (will forward all requests on port 80 to the proxy):</p>
+<p><strong>ProxyRequests Off</strong><br /><strong>ProxyPreserveHost On</strong><br /><strong>&lt;Proxy *&gt;</strong><br /><strong> Order allow,deny</strong><br /><strong> Allow from all</strong><br /><strong>&lt;/Proxy&gt;</strong>
+<p><strong>ProxyPass / <a href="http://127.0.0.1:9000/">http://127.0.0.1:9000/</a></strong><br /><strong>ProxyPassReverse / <a href="http://127.0.0.1:9000/">http://127.0.0.1:9000/</a></strong></p>
+<p>4. Restart apache - <strong>sudo /etc/init.d/apache2 restart</strong></p>
+<p>The two sites hosted on your server should now be accessible from the domains.</p>
+<p>If you muck up, errors should be logged in <strong>/var/log/apache2/error.log</strong>.</p>
+<p>&nbsp;</p></p>

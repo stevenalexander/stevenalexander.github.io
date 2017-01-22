@@ -1,0 +1,63 @@
+---
+layout: post
+title: Offline web
+date: 2015-09-04 17:56:25.000000000 +01:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- cache
+- html5
+- javascript
+- offline
+- service workers
+meta:
+  _rest_api_published: '1'
+  _rest_api_client_id: "-1"
+  _publicize_job_id: '14435623794'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p><strong>The problem</strong></p>
+<p>I get the train to work every morning, and like a good commuter I avoid conversation and eye contact with my fellows, browsing the Internet on my phone. This works well up until 10 minutes into the journey when I hit a signal dead spot, then there's a grey browser error screen frustrating me.</p>
+<p><img class="size-medium wp-image-484 alignright" src="{{ site.baseurl }}/assets/screen-shot-2015-09-04-at-14-36-50.png?w=169" alt="Screen Shot 2015-09-04 at 14.36.50" width="169" height="300" /></p>
+<p>Why in 2015 is this an acceptable user experience for every web site? We cache HTML, images, CSS and JS for performance, but when your browser can't reach the site for a response it just gives up and displays a meaningless generic message.</p>
+<p>My trivial train problems aside, this is a serious usability issue for web applications. Mobile is now how most people access the Internet, and with mobile you cannot assume perfect network connectivity. They could be moving in a poor mobile signal area, in a Wi-Fi dead zone or just behind thick walls. It probably happens to you dozens of times a day and you never realise until you check something on your phone and the grey "Network Error" stares back at you.</p>
+<p>I design and make business software applications, normally web applications. Mobile is big in business now as well. It's not a feature; it's a functional requirement. Customers want and expect their users to be able to walk around with their phone or iPad and check stock, view records and submit reports, without having to waste time finding a desktop. Lots of times business environments are bad for connectivity, big warehouses with metal walls, spotty Wi-Fi, hospitals built in the 50s with underground levels.</p>
+<p>The normal way to deal with this is native applications, iOS/Android etc., which give you better offline options. But this massively complicates development, adding an entirely new tech stack and making you deal with installation and maintenance on client devices.</p>
+<p>People like web sites because they are simple. HTML and HTTP are reliable, you navigate to a site and it loads the page, no install and works on all devices/browsers the same (mostly). It gives the same core experience on your desktop or phone, with no unique application UI and controls to understand.</p>
+<p>So can we make websites more offline friendly?</p>
+<p><strong>Offline web</strong></p>
+<p>This is a bit of a silly sounding term, “Offline web”. We’ve lived with the restrictions of the HTTP request for HTML response pattern for so long that a web page being able to do something useful without needing a response seems strange. But what if after the first request, first visit, the web site could tell your browser what to do when you lose connection?<img class="size-medium wp-image-485 alignright" src="{{ site.baseurl }}/assets/html5_css_javascript.png?w=300" alt="html5_css_javascript" width="300" height="120" /></p>
+<p>In HTML5, <a href="http://diveintohtml5.info/offline.html">app cache</a> as introduced as a way to provide offline functionality, but it’s a very static and cumbersome method which hasn’t taken off well (see <a href="http://alistapart.com/article/application-cache-is-a-douchebag">here</a> for a criticism of it). Local Storage and Web Workers also help web sites cache and dynamically request resources.</p>
+<p>A new approach, <a href="http://www.w3.org/TR/service-workers/">Service Workers</a>, has been proposed by Google, Samsung, Mozilla and others. A Service Worker is a JavaScript script that is run separate from your browser. It can intercept requests and cache responses, allowing you to programmatically handle offline functionality. It's a very interesting idea, have a look at this article for more <a href="http://www.html5rocks.com/en/tutorials/service-worker/introduction/">detail</a>.</p>
+<p>Since it’s just an additional JavaScript file that can be loaded if the client browser supports Service Workers, you can use the progressive enhancement approach for adding offline functionality so it your site still works on older/incompatible browsers. Currently it’s not supported on Safari or IE, which is a big limitation, but hopefully it will get adopted in the future.</p>
+<p><strong>Offline Service Worker example</strong></p>
+<p>To try out the offline functionality I wanted to use it in a dynamic web application rather than static content, so I went for a simple CRUD Person web site using the backup cache pattern (see <a href="https://jakearchibald.com/2014/offline-cookbook/">here</a> for Jake Archibald’s excellent offline cookbook).</p>
+<p><a href="https://stevenwilliamalexander.files.wordpress.com/2015/09/offline-service-worker-cache-fallback.jpg"><img class="size-medium wp-image-481 aligncenter" src="{{ site.baseurl }}/assets/offline-service-worker-cache-fallback.jpg?w=300" alt="Offline Service Worker cache fallback" width="300" height="151" /></a></p>
+<p>The source is available <a href="https://github.com/stevenalexander/dropwizard-person-offline">here</a>.</p>
+<p>The site uses it to enhance the application with limited offline functions when available, caching responses for the Person list and Person entries. If a request fails, due to connection problems or the site being down, the cached response is retrieved and modified to display a offline warning message and the time it came from. Edit/Delete/Add buttons are hidden, as they would not work without a connection.</p>
+<p><a href="https://stevenwilliamalexander.files.wordpress.com/2015/09/screencapture-rocky-ocean-8845-herokuapp-com-persons-1441385559595.png"><img class="alignnone size-medium wp-image-483" src="{{ site.baseurl }}/assets/screencapture-rocky-ocean-8845-herokuapp-com-persons-1441385559595.png?w=271" alt="screencapture-rocky-ocean-8845-herokuapp-com-persons-1441385559595" width="271" height="300" /></a> <a href="https://stevenwilliamalexander.files.wordpress.com/2015/09/screencapture-rocky-ocean-8845-herokuapp-com-persons-1-1441385576949.png"><img class="alignnone size-medium wp-image-482" src="{{ site.baseurl }}/assets/screencapture-rocky-ocean-8845-herokuapp-com-persons-1-1441385576949.png?w=271" alt="screencapture-rocky-ocean-8845-herokuapp-com-persons-1-1441385576949" width="271" height="300" /></a></p>
+<p>This allows users to continue viewing records they already retrieved even if they lose connection, something that can be very important in business applications.</p>
+<p>It’s a simple example; you can do a lot more with Service Workers than just backup offline caching. You can proactively request resources and store locally to dramatically improve page load time, use in combination with a single page application framework (AngularJS, Ember etc.) to cache API call results to display while waiting for a response. Future functionality for Service Workers will include push notifications, background sync, and geo-fencing.</p>
+<p><strong>Conclusion</strong></p>
+<p>I believe with the new functionality available offline support in web sites is going to become the norm, with users expecting decent sites to handle connection problems gracefully with degraded functionality rather than total failure.</p>
+<p>This is going to require new techniques for creating web sites, good knowledge of JavaScript and use of new frameworks to help. Already the <a href="https://elements.polymer-project.org/elements/platinum-sw?active=platinum-sw-import-script">Polymer</a> web framework has a module to support offline. As more <a href="https://jakearchibald.github.io/isserviceworkerready/">browsers</a> and devices support the standards, the number of frameworks and tools to help develop offline functionality will increase.</p>
+<p>This is an exciting time to be doing web development, lots of new possibilities for web applications are coming, changing what’s possible and making the web user experience better than before.</p>
+<p><strong>Links</strong></p>
+<ul>
+<li><a href="http://www.html5rocks.com/en/tutorials/service-worker/introduction/">Introduction to Service Worker</a></li>
+<li><a href="https://www.youtube.com/watch?v=4uQMl7mFB6g">Video - The ServiceWorker: The network layer is yours to own</a></li>
+<li><a href="http://jakearchibald.com/2014/offline-cookbook/">Jake Archibald - Offline cookbook</a></li>
+<li><a href="https://www.youtube.com/watch?v=BucGrYACJdQ">Video - Polymer Going offline</a></li>
+<li><a href="https://slightlyoff.github.io/ServiceWorker/spec/service_worker/index.html">Service Worker draft specification</a></li>
+<li><a href="https://github.com/w3c-webmob/ServiceWorkersDemos">W3C samples</a></li>
+<li><a href="https://quickleft.com/blog/making-your-app-work-offline-tips-and-cautionary-tales/">Making Your App Work Offline: Tips and Cautionary Tales</a></li>
+<li><a href="http://miguelcamba.com/blog/2015/02/15/how-to-tamper-requests-with-service-workers/">Tamper Requests With Service Workers</a></li>
+<li><a href="http://www.html5rocks.com/en/tutorials/es6/promises/">JavaScript Promises</a></li>
+</ul>

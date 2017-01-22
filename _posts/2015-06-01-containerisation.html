@@ -1,0 +1,69 @@
+---
+layout: post
+title: Containerisation
+date: 2015-06-01 09:30:21.000000000 +01:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- comparison
+- containers
+- docker
+- virtual machines
+meta:
+  _rest_api_published: '1'
+  _rest_api_client_id: "-1"
+  _publicize_job_id: '11218343739'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p>I've recently been looking at containerisation and how the adoption of this technology would change development and deployment.</p>
+<h2 id="wiki_toc_what-are-the-differences-between-containers-and-vi">What are the differences between containers and Virtual Machines</h2>
+<p>Linux containers are type of virtualisation, done at the OS level rather than hardware (see <a href="http://www.linuxjournal.com/content/containers%E2%80%94not-virtual-machines%E2%80%94are-future-cloud" target="_blank">here[1]</a>). Containerisation is not new, it has been around for over 15 years (see <a href="http://pivotal.io/platform-as-a-service/infographic/moments-in-container-history" target="_blank">here[5]</a>) but required a recent change in the Linux kernel to make them easy to secure (process namespaces and cgroups, see <a href="http://en.wikipedia.org/wiki/Cgroups" target="_blank">here[6]</a>).</p>
+<p>As containers do not require a guest OS and the host running a hypervisor they are smaller in size, much quicker to start and can be hosted with greater density and performance than Virtual Machines. The benefits of this have been recognised by large service providers like Google and Facebook, who now host practically all their services in containers (see <a href="https://speakerdeck.com/jbeda/containers-at-scale" target="_blank">here[2]</a> and <a href="http://www.infoq.com/presentations/cluster-management-google" target="_blank">video here[3]</a> at 35mins). Other services which use dynamically created instances, such as Travis, Saucelabs, Heroku, also use containers as they are much faster to create/destroy.</p>
+<p>While containers have been quickly adopted by large scale projects and organisations, they have been largely ignored by smaller scale projects who continue to use IaaS with Virtual Machines. This is beginning to change with the rise of containerisation tools and frameworks like Docker (<a href="https://www.docker.com/" target="_blank">here[4]</a>) which make it easier to host smaller scale containerised solutions.</p>
+<h2 id="wiki_toc_how-containers-can-be-used-in-development">How containers can be used in development</h2>
+<p>We commonly use Virtual Machine images to provide developers with a common development environment, but due to performance and hosting limitations this environment is normally nothing like the production environment, leading to a gap in understanding how the software they are developing will run in reality. Also Virtual Machines are slow to start, massive in size and difficult to configure/recreate, leading to development delays for new starts or after changes.</p>
+<p>Containers offer a way for developers to create and run the applications that make up the solution similar to production, while keeping the overhead low and extremely responsive. Where a Virtual Machine hosting an application may take 10 minutes to copy/download and over a minute to startup and run, a container can be created and started in seconds and can be easily destroyed/recreated. In a large project team dealing with multiple applications, having your development environment defined in containers can offer a large time saving even if you do not intend to run in containers on production.</p>
+<p>Containers also allow developers to easily define and test the definition of what container requires (dependencies/configuration etc.) and guarantee isolation, so the way a container runs in a development host should be identical to a production host (excluding networking/performance etc.). This reduces the gap between development and operations, allowing developers to locally test their application running in the same container that would be used in production and understand what dependencies/ports/configuration that application needs.</p>
+<p>Docker has a good explanation of how containers can be used to develop and ship software reliably <a href="https://www.docker.com/whatisdocker/" target="_blank">here ([7])</a>.</p>
+<p>By reducing the overhead in creating environments, both in development and production, containers make types of architecture and scaling easier to create. For example, once you have created a container to host a microservice you can run multiple copies of it load balanced across multiple container hosts, with container instances created/destroyed dynamically on demand. See <a href="https://stevenwilliamalexander.wordpress.com/2015/05/11/microservice-authentication-and-authorisation-using-docker/" target="_blank">here (8) </a>for an example of a microservice authentication and authorisation solution implemented with Docker containers.</p>
+<h2 id="wiki_toc_how-containers-can-be-used-in-deployment-and-opera">How containers can be used in deployment and operations</h2>
+<p>Containerisation new opportunities and challenges in deploying solutions. Used incorrectly and it could become another layer of virtualisation that operations have to worry about. Used correctly and it reduces the amount of work necessary to deploy complex applications by standardising how components are deployed and wired together.</p>
+<p>During the initial hype of cloud services it was assumed that with IaaS we would be able to spin up VM instances quickly and easily on demand. In practise on real projects this has not been the case. Costs, restrictions on providers available on projects, differences between providers APIs and tricky networking configuration have meant that actually creating new instances to make an environment is expensive in time and effort. This has made it difficult to create new environments on demand using VMs and locked projects into providers.</p>
+<p>A containerised solution allows more flexible hosting, as instead of thinking in terms of VMs provisioned for specific environments and roles (i.e. a Web server, Application server) you can treat each container host as a pool of available resources to run different containers for different, including duplicate containers spread across hosts for redundancy and rolling updates. There are a number of frameworks and tools for managing the containers hosted on each machine, such as <a href="https://coreos.com/docs/launching-containers/launching/launching-containers-fleet/" target="_blank">Fleet ([9])</a> and <a href="http://kubernetes.io/" target="_blank">Kubernetes ([10])</a>, using tools like these ensure that each host starts the required containers and coordinates with each other for starting/stopping containers and load balancing. Host themselves would be provisioned the same way as current Virtual Machines using tools like Ansible and Puppet.</p>
+<p>This allows projects to create clusters of VM container hosts for development/testing/production and create containers to meet the current hosting needs without having to change the VM instances available. For example, if a new User Test satellite environment is needed the configuration of the test cluster is updated/pushed causing the cluster to start new container instances on node VMs with available CPU/memory resources, links them together and making the new environment available externally. When the environment is not needed the configuration is updated again and the container instances are destroyed. The only time new VMs need to be created is when a new cluster is needed or a clusters capacity needs to be increased.</p>
+<h2 id="wiki_toc_when-should-you-not-use-containers">When should you not use containers</h2>
+<p>If you are considering using containers you should think about the situations when you would not want to use them, so you know if they are included in your solution.</p>
+<ul>
+<li>If your application is small, in terms of layers or hosting, as the cost of implementing and managing containers will out weight the benefits. E.g. a simple web application hosted on one or two servers.</li>
+<li>When your container becomes as complex to provision and configure as it would on a virtual machine. If you cannot easily isolate the functionality into small manageable containers then you are essentially using containers the same as a virtual machine plus the added overhead. E.g. trying to containerise a monolithic solution</li>
+<li>For bundling large third party dependences which do not officially support your container framework. E.g. trying to containerise an Oracle DB instance.</li>
+<li>When your hosting architecture has fixed structure or security limitations that restrict how and where certain components can be placed. This affects where you can put your containers and makes it difficult to get the benefits of containers flexible deployment if you are stuck with most of your components deployment being fixed and predefined. E.g. Security restrictions mean any change in networking need external review, so new containers cannot be created without pre-authorisation, making deployments essentially fixed</li>
+</ul>
+<p>A lot of the benefits for containers are similar to the benefits of splitting your application across multiple small VMs, if you wouldn't do that then you should reconsider and either not use containers or only containerise the parts which would benefit.</p>
+<h2 id="wiki_toc_conclusion">Conclusion</h2>
+<p>Using containers requires a change in thinking, both for developing solutions and deploying them.</p>
+<p>The speed and responsiveness of containers makes it much easier for developers to run and test their components in production like environments, letting them be more involved with operational tasks and reduce the gap between development and operations.</p>
+<p>For deployment, instead of deploying components to static servers in static locations you are defining components that need to be run, linking them together and relying on the container hosts to create and start instances. This brings new challenges in how to handle persistence and monitoring of these containers which are designed to be disposable, but allows solutions to be made from many simple and scalable parts without massive overhead.</p>
+<p>While containers are not going to replace VMs right away, but the performance/speed/adaptability advantages are only going to push more providers and services to use them over time, making it impossible to ignore (<a href="https://www.youtube.com/watch?v=p-x9wC94E38" target="_blank">see video[11]</a>, conclusion at 40min). Already Joylent (<a href="https://www.joyent.com/">[12]</a>), a hosting provider, is offering bare metal container hosting, IaaS giving performance/responsiveness benefit of containers over VMs. This trend will likely continue, as container hosting gets cheaper more providers will pick it up and skills to use it will spread.</p>
+<h2 id="wiki_toc_references">References</h2>
+<ul>
+<li><a href="http://www.datamation.com/data-center/virtualization-vs.-containers-what-you-need-to-know.html" target="_blank">[1] Virtualization vs. Containers: What You Need to Know</a></li>
+<li><a href="https://speakerdeck.com/jbeda/containers-at-scale" target="_blank">[2] Joe Beda - Containers At Scale (Google)</a></li>
+<li><a href="http://www.infoq.com/presentations/cluster-management-google" target="_blank">[3] Video - John Wilkes - Cluster Management at Google (containers start at 35min)</a></li>
+<li><a href="https://www.docker.com/" target="_blank">[4] Docker</a></li>
+<li><a href="http://pivotal.io/platform-as-a-service/infographic/moments-in-container-history" target="_blank">[5] History of containers</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Cgroups" target="_blank">[6] Wikipedia - CGroups</a></li>
+<li><a href="https://www.docker.com/whatisdocker/" target="_blank">[7] What is Docker</a></li>
+<li><a href="https://stevenwilliamalexander.wordpress.com/2015/05/11/microservice-authentication-and-authorisation-using-docker/" target="_blank">[8] Microservice authentication and authorisation</a></li>
+<li><a href="https://coreos.com/docs/launching-containers/launching/launching-containers-fleet/" target="_blank">[9] Using CoreOS with Fleet for container management</a></li>
+<li><a href="http://kubernetes.io/" target="_blank">[10] Kubernetes - managing clusters of containers</a></li>
+<li><a href="https://www.youtube.com/watch?v=p-x9wC94E38" target="_blank">[11] Containers and the Cloud: Do You Need Another Virtual Environment? - James Bottomley</a></li>
+<li><a href="https://www.joyent.com/">[12] Joylent - bare metal container hosting provider</a></li>
+</ul>

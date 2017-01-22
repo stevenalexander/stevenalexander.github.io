@@ -1,0 +1,78 @@
+---
+layout: post
+title: Dropwizard Handle Exceptions
+date: 2014-04-09 13:01:09.000000000 +01:00
+type: post
+published: true
+status: publish
+categories:
+- jvm
+tags:
+- dropwizard
+- exception
+- Handling
+- java
+meta:
+  _edit_last: '46212493'
+  _publicize_pending: '1'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p>I've made a <a href="https://github.com/stevenalexander/dropwizard-handle-exceptions">sample application</a> showing how to create an exception provider which catches exceptions thrown inside resources and handles them gracefully in your application.</p>
+<p>This example uses a Jetty Provider ExceptionMapper (<a style="color:#4183c4;" href="https://github.com/stevenalexander/dropwizard-handle-exceptions/blob/master/src/main/java/com/example/providers/RuntimeExceptionMapper.java">RuntimeExceptionMapper.java</a>) to handle any RuntimeExceptions thrown inside the application, which logs the exception and returns an appropriate response.</p>
+<pre><code>package com.example.providers;
+
+...
+import javax.ws.rs.ext.ExceptionMapper;
+import javax.ws.rs.ext.Provider;
+...
+
+@Provider
+public class RuntimeExceptionMapper implements ExceptionMapper&lt;RuntimeException&gt; {
+
+    @Override
+    public Response toResponse(RuntimeException exception) {
+
+        Response response500 = Response
+                .serverError()
+                .entity(new ErrorView(exception, "500.ftl"))
+                .build();
+
+        ...
+
+        return response500;
+    }
+}
+</code></pre>
+<p>The provider should be added to the environment in the Run method of the Service class.</p>
+<pre><code>package com.example;
+
+...
+
+public class ExampleService extends com.yammer.dropwizard.Service&lt;ExampleConfiguration&gt; {
+
+    public static void main(String[] args) throws Exception
+    {
+        new com.example.ExampleService().run(args);
+    }
+
+    @Override
+    public void initialize(Bootstrap bootstrap) {
+        bootstrap.setName("dropwizard-handle-exceptions");
+        bootstrap.addBundle(new ViewBundle());
+    }
+
+    @Override
+    public void run(ExampleConfiguration configuration, Environment environment) throws Exception {
+        environment.addResource(new UserResource());
+
+        environment.addProvider(new RuntimeExceptionMapper());
+    }
+}
+
+</code></pre>
+<p>Got the idea from <a style="color:#4183c4;" href="http://gary-rowe.com/agilestack/2012/10/23/how-to-implement-a-runtimeexceptionmapper-for-dropwizard/">here</a>.</p>

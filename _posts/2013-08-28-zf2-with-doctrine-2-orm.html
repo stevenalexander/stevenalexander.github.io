@@ -1,0 +1,330 @@
+---
+layout: post
+title: ZF2 with Doctrine 2 ORM
+date: 2013-08-28 13:05:50.000000000 +01:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- Doctrine
+- Doctrine 2
+- ORM
+- php
+- Zend Framework 2
+- ZF2
+meta:
+  _publicize_pending: '1'
+  _edit_last: '46212493'
+  tagazine-media: a:7:{s:7:"primary";s:96:"http://stevenwilliamalexander.files.wordpress.com/2013/08/screen-shot-2013-08-28-at-14-06-41.png";s:6:"images";a:2:{s:96:"http://stevenwilliamalexander.files.wordpress.com/2013/08/screen-shot-2013-08-28-at-11-07-54.png";a:6:{s:8:"file_url";s:96:"http://stevenwilliamalexander.files.wordpress.com/2013/08/screen-shot-2013-08-28-at-11-07-54.png";s:5:"width";i:665;s:6:"height";i:148;s:4:"type";s:5:"image";s:4:"area";i:98420;s:9:"file_path";b:0;}s:96:"http://stevenwilliamalexander.files.wordpress.com/2013/08/screen-shot-2013-08-28-at-14-06-41.png";a:6:{s:8:"file_url";s:96:"http://stevenwilliamalexander.files.wordpress.com/2013/08/screen-shot-2013-08-28-at-14-06-41.png";s:5:"width";i:1029;s:6:"height";i:320;s:4:"type";s:5:"image";s:4:"area";i:329280;s:9:"file_path";b:0;}}s:6:"videos";a:0:{}s:11:"image_count";i:2;s:6:"author";s:8:"46212493";s:7:"blog_id";s:8:"47137818";s:9:"mod_stamp";s:19:"2013-08-28
+    13:10:57";}
+  _oembed_02cf6fdd36078187ee14ae345ec9302c: "{{unknown}}"
+  _oembed_5bf6e6c16ad3f7230fab0ca263a4baef: "{{unknown}}"
+  _oembed_610fc63469a031458b3025654b288e06: "{{unknown}}"
+  _oembed_feca6cbc9d282d4a90754a056ca5ce70: "{{unknown}}"
+  _oembed_75838e8ec5e84ac6c1acd69635dbc7e2: "{{unknown}}"
+  _oembed_b5491e06b88e6d954bf4ea91589a7b7e: "{{unknown}}"
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<h1><a href="https://github.com/stevenalexander/zf2-example-doctrine2">Source</a></h1>
+<h1><span style="color:#000000;font-size:15px;font-weight:bold;">Introduction</span></h1>
+<p>This is an example Zend Framework 2 application using Doctrine 2 ORM. Most of this is based on <a href="http://marco-pivetta.com/doctrine-orm-zf2-tutorial/">Marco Pivetta Blog</a> screencast.</p>
+<h2><a href="https://github.com/stevenalexander/zf2-example-doctrine2/blob/master/README.md#creation-steps" name="creation-steps"></a>Creation Steps</h2>
+<p>1.Create ZF2 project from skeleton using composer</p>
+<pre><code>curl -s https://getcomposer.org/installer | php --
+php composer.phar create-project -sdev --repository-url="http://packages.zendframework.com" zendframework/skeleton-application zf2-example-doctrine2
+</code></pre>
+<p>2.Update composer.json to require Doctrine 2</p>
+<pre><code>php composer.phar self-update
+php composer.phar require doctrine/doctrine-module:dev-master
+php composer.phar require doctrine/doctrine-orm-module:dev-master
+</code></pre>
+<p>3.Install ZF Dev tools</p>
+<pre><code>php composer.phar require zendframework/zend-developer-tools:dev-master
+</code></pre>
+<p>4.Copy ZF Dev tools autoload config to application config and add modules</p>
+<pre><code>cp vendor/zendframework/zend-developer-tools/config/zenddevelopertools.local.php.dist config/autoload/zdt.local.php
+</code></pre>
+<p>Edit config/application.config.php:</p>
+<pre><code>...
+'modules' =&gt; array(
+    'ZendDeveloperTools',
+    'DoctrineModule',
+    'DoctrineORMModule',
+    'Application',
+),
+...
+</code></pre>
+<p>5.Add first entity User</p>
+<p>New file module/Application/src/Application/Entity/User.php:</p>
+<pre><code>&lt;?php
+
+namespace Application\Entity;
+use Doctrine\ORM\Mapping as ORM;
+/** @ORM\Entity */
+class User {
+    /**
+    * @ORM\Id
+    * @ORM\GeneratedValue(strategy="AUTO")
+    * @ORM\Column(type="integer")
+    */
+    protected $id;
+
+    /** @ORM\Column(type="string") */
+    protected $fullName;
+
+    public function getId()
+    {
+        return $this-&gt;id;
+    }
+
+    public function getFullName()
+    {
+        return $this-&gt;fullName;
+    }
+
+    public function setFullName($value)
+    {
+        $this-&gt;fullName = $value;
+    }
+}
+</code></pre>
+<p>6.Add the Doctrine Driver to application config</p>
+<p>Edit config/module.config.php:</p>
+<pre><code>return array(
+    'doctrine' =&gt; array(
+        'driver' =&gt; array(
+            'application_entities' =&gt; array(
+                'class' =&gt;'Doctrine\ORM\Mapping\Driver\AnnotationDriver',
+                'cache' =&gt; 'array',
+                'paths' =&gt; array(__DIR__ . '/../src/Application/Entity')
+            ),
+
+            'orm_default' =&gt; array(
+                'drivers' =&gt; array(
+                    'Application\Entity' =&gt; 'application_entities'
+                )
+            )
+        )
+    ),
+    ...
+</code></pre>
+<p>You should now see the new entity in the ZF2 Dev tool bar in the doctrine section at the bottom of the screen.</p>
+<p><a href="http://stevenwilliamalexander.files.wordpress.com/2013/08/screen-shot-2013-08-28-at-11-07-54.png"><img class="alignnone size-medium wp-image-360" alt="Screen Shot 2013-08-28 at 11.07.54" src="{{ site.baseurl }}/assets/screen-shot-2013-08-28-at-11-07-54.png?w=300" width="300" height="66" /></a></p>
+<p>7.Add database config for Doctrine</p>
+<p>New file local.php:</p>
+<pre><code>&lt;?php
+
+return array(
+);
+</code></pre>
+<p>New file config/autoload/doctrine.local.php (for local MySql):</p>
+<pre><code>&lt;?php
+
+return array(
+  'doctrine' =&gt; array(
+    'connection' =&gt; array(
+      'orm_default' =&gt; array(
+        'driverClass' =&gt;'Doctrine\DBAL\Driver\PDOMySql\Driver',
+        'params' =&gt; array(
+          'host'     =&gt; 'localhost',
+          'port'     =&gt; '3306',
+          'user'     =&gt; 'username',
+          'password' =&gt; 'password',
+          'dbname'   =&gt; 'database',
+)))));
+</code></pre>
+<p>8.Validate the schema against the current DB (will fail since you haven't got any schema)</p>
+<pre><code>./vendor/bin/doctrine-module orm:validate-schema
+</code></pre>
+<p>9.Generate the schema</p>
+<p>This will apply the ORM generated schema to the DB</p>
+<pre><code>./vendor/bin/doctrine-module orm:schema-tool:create
+</code></pre>
+<p>10.Update routes for CRUD actions</p>
+<p>Edit module/Application/config/module.config.php:</p>
+<pre><code>...
+'user' =&gt; array(
+    'type'    =&gt; 'segment',
+    'options' =&gt; array(
+        'route'    =&gt; '/user[/][:action][/:id]',
+        'constraints' =&gt; array(
+            'action' =&gt; '[a-zA-Z][a-zA-Z0-9_-]*',
+            'id'     =&gt; '[0-9]+',
+        ),
+        'defaults' =&gt; array(
+            'controller' =&gt; 'Application\Controller\Index',
+            'action'     =&gt; 'index',
+        ),
+    ),
+),
+...
+</code></pre>
+<p>11.Update IndexController for CRUD actions</p>
+<p>Edit module/Application/src/Application/Controller/IndexController.php:</p>
+<pre><code>&lt;?php
+
+namespace Application\Controller;
+
+use Zend\Mvc\Controller\AbstractActionController;
+use Zend\View\Model\ViewModel;
+use Application\Entity\User;
+
+class IndexController extends AbstractActionController
+{
+    protected $_objectManager;
+
+    public function indexAction()
+    {
+        $users = $this-&gt;getObjectManager()-&gt;getRepository('\Application\Entity\User')-&gt;findAll();
+
+        return new ViewModel(array('users' =&gt; $users));
+    }
+
+    public function addAction()
+    {
+        if ($this-&gt;request-&gt;isPost()) {
+            $user = new User();
+            $user-&gt;setFullName($this-&gt;getRequest()-&gt;getPost('fullname'));
+
+            $this-&gt;getObjectManager()-&gt;persist($user);
+            $this-&gt;getObjectManager()-&gt;flush();
+            $newId = $user-&gt;getId();
+
+            return $this-&gt;redirect()-&gt;toRoute('home');
+        }
+        return new ViewModel();
+    }
+
+    public function editAction()
+    {
+        $id = (int) $this-&gt;params()-&gt;fromRoute('id', 0);
+        $user = $this-&gt;getObjectManager()-&gt;find('\Application\Entity\User', $id);
+
+        if ($this-&gt;request-&gt;isPost()) {
+            $user-&gt;setFullName($this-&gt;getRequest()-&gt;getPost('fullname'));
+
+            $this-&gt;getObjectManager()-&gt;persist($user);
+            $this-&gt;getObjectManager()-&gt;flush();
+
+            return $this-&gt;redirect()-&gt;toRoute('home');
+        }
+
+        return new ViewModel(array('user' =&gt; $user));
+    }
+
+    public function deleteAction()
+    {
+        $id = (int) $this-&gt;params()-&gt;fromRoute('id', 0);
+        $user = $this-&gt;getObjectManager()-&gt;find('\Application\Entity\User', $id);
+
+        if ($this-&gt;request-&gt;isPost()) {
+            $this-&gt;getObjectManager()-&gt;remove($user);
+            $this-&gt;getObjectManager()-&gt;flush();
+
+            return $this-&gt;redirect()-&gt;toRoute('home');
+        }
+
+        return new ViewModel(array('user' =&gt; $user));
+    }
+
+    protected function getObjectManager()
+    {
+        if (!$this-&gt;_objectManager) {
+            $this-&gt;_objectManager = $this-&gt;getServiceLocator()-&gt;get('Doctrine\ORM\EntityManager');
+        }
+
+        return $this-&gt;_objectManager;
+    }
+}
+</code></pre>
+<p>12.Add views for CRUD actions</p>
+<p>Edit module/Application/view/application/index/index.phtml:</p>
+<pre><code>&lt;div&gt;
+    &lt;div&gt;
+        &lt;div&gt;
+            &lt;div&gt;
+                &lt;h3&gt;Users&lt;/h3&gt;
+            &lt;/div&gt;
+            &lt;div&gt;
+                &lt;a href="&lt;?php echo $this-&gt;url('user', array('action'=&gt;'add'));?&gt;"&gt;Add User&lt;/a&gt;
+
+                &lt;?php if (isset($users)) : ?&gt;
+                &lt;table&gt;
+                    &lt;thead&gt;
+                    &lt;tr&gt;
+                        &lt;th&gt;Id&lt;/th&gt;
+                        &lt;th&gt;Full name&lt;/th&gt;
+                        &lt;th&gt;&lt;/th&gt;
+                    &lt;/tr&gt;
+                    &lt;/thead&gt;
+                &lt;?php foreach($users as $user): ?&gt;
+                    &lt;tbody&gt;
+                    &lt;tr&gt;
+                        &lt;td&gt;&lt;?php echo $user-&gt;getId(); ?&gt;&lt;/td&gt;
+                        &lt;td&gt;&lt;?php echo $user-&gt;getFullName(); ?&gt;&lt;/td&gt;
+                        &lt;td&gt;
+                            &lt;a href="&lt;?php echo $this-&gt;url('user', array('action'=&gt;'edit', 'id' =&gt; $user-&gt;getId()));?&gt;"&gt;Edit&lt;/a&gt; |
+                            &lt;a href="&lt;?php echo $this-&gt;url('user', array('action'=&gt;'delete', 'id' =&gt; $user-&gt;getId()));?&gt;"&gt;Delete&lt;/a&gt;
+                        &lt;/td&gt;
+                    &lt;/tr&gt;
+                    &lt;/tbody&gt;
+                &lt;?php endforeach; ?&gt;
+                &lt;/table&gt;
+                &lt;?php endif; ?&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+</code></pre>
+<p>Edit module/Application/view/application/index/add.phtml:</p>
+<pre><code>&lt;?php
+
+$title = 'Add new User';
+$this-&gt;headTitle($title);
+?&gt;
+&lt;h1&gt;&lt;?php echo $this-&gt;escapeHtml($title); ?&gt;&lt;/h1&gt;
+&lt;form method="post"&gt;
+  fullname: &lt;input type="text" name="fullname"&gt;&lt;br&gt;
+  &lt;input type="submit" value="Submit"&gt;
+&lt;/form&gt;
+</code></pre>
+<p>Edit module/Application/view/application/index/edit.phtml:</p>
+<pre><code>&lt;?php
+
+$title = 'Edit User';
+$this-&gt;headTitle($title);
+?&gt;
+&lt;h1&gt;&lt;?php echo $this-&gt;escapeHtml($title); ?&gt;&lt;/h1&gt;
+&lt;form method="post"&gt;
+  fullname: &lt;input type="text" name="fullname" value="&lt;?php echo $user-&gt;getFullname(); ?&gt;"&gt;&lt;br&gt;
+  &lt;input type="submit" value="Submit"&gt;
+&lt;/form&gt;
+</code></pre>
+<p>Edit module/Application/view/application/index/delete.phtml:</p>
+<pre><code>&lt;?php
+
+$title = 'Delete User';
+$this-&gt;headTitle($title);
+?&gt;
+&lt;h1&gt;&lt;?php echo $this-&gt;escapeHtml($title); ?&gt;&lt;/h1&gt;
+Are you sure you want to delete user &lt;?php echo $user-&gt;getFullname(); ?&gt;? &lt;br/&gt;
+&lt;form method="post"&gt;
+  &lt;input type="submit" value="Delete"&gt;
+&lt;/form&gt;
+</code></pre>
+<p><a href="http://stevenwilliamalexander.files.wordpress.com/2013/08/screen-shot-2013-08-28-at-14-06-41.png"><img class="alignnone size-medium wp-image-361" alt="Screen Shot 2013-08-28 at 14.06.41" src="{{ site.baseurl }}/assets/screen-shot-2013-08-28-at-14-06-41.png?w=300" width="300" height="93" /></a></p>
+<p>This covers basic CRUD actions using Doctrine 2 ORM in ZF2.</p>
+<h2><a href="https://github.com/stevenalexander/zf2-example-doctrine2/blob/master/README.md#links" name="links"></a>Links</h2>
+<ul>
+<li><a href="http://framework.zend.com/">ZF2</a></li>
+<li><a href="http://www.doctrine-project.org/">Doctrine 2</a></li>
+<li><a href="http://www.ibm.com/developerworks/library/os-doctrine-php-zend/">IBM blog</a></li>
+<li><a href="http://marco-pivetta.com/doctrine-orm-zf2-tutorial/">Marco Pivetta Blog</a></li>
+</ul>

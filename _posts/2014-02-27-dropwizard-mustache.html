@@ -1,0 +1,42 @@
+---
+layout: post
+title: Dropwizard Mustache and Freemarker
+date: 2014-02-27 10:11:53.000000000 +00:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- dropwizard
+- freemarker
+- java
+- Mustache
+- Mustache.java
+- sbt
+meta:
+  _edit_last: '46212493'
+  _publicize_pending: '1'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p><a href="https://github.com/stevenalexander/dropwizard-mustache">Mustache source here</a></p>
+<p><a href="https://github.com/stevenalexander/dropwizard-freemarker">Freemarker source here</a></p>
+<p>Sample applications showing how to build a <a href="http://dropwizard.codahale.com/">dropwizard</a> service returning html views using the <a href="https://github.com/spullara/mustache.java">mustache</a><span style="text-decoration:underline;"> </span>and [freemarker](http://freemarker.org/) templating languages.</p>
+<p>These are simple dropwizard implementations for returning HTML. It's based on the Dropwizard example <a href="http://dropwizard.codahale.com/manual/views/">here</a>. Using SBT instead of Maven as I keep hearing bad things about using Maven for complex builds and want to build up my SBT knowledge.</p>
+<p>A couple of points noted during development:</p>
+<ul>
+<li>To use views you need to add a dependency to "dropwizard-views" in addition to "dropwizard-core"</li>
+<li>Mustache.java does not support inheritance, but does do partials, which makes it a little clumsy for full page HTML templating with common header/footer elements</li>
+<li>Freemarker supports nesting templates and macros which allow inheritance and complex layouts</li>
+<li>Testing of views looks easy, as does testing resources constructing them</li>
+</ul>
+<h2><a href="https://github.com/stevenalexander/dropwizard-mustache#setup" name="setup"></a>Setup</h2>
+<p>To compile:</p>
+<pre><code>./sbt assembly
+</code></pre>
+<p>To run:</p>
+<pre><code>java -jar target/scala-2.10/dropwizard-mustache-assembly-0.1.jar server config.yml</code></pre>

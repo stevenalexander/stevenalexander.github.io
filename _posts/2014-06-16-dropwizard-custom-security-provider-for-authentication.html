@@ -1,0 +1,161 @@
+---
+layout: post
+title: Dropwizard custom security provider for authentication
+date: 2014-06-16 12:01:58.000000000 +01:00
+type: post
+published: true
+status: publish
+categories:
+- dropwizard
+- jvm
+- Testing
+tags:
+- dropwizard
+- example
+- java
+- provider
+- security
+- testing
+meta:
+  _edit_last: '46212493'
+  geo_public: '0'
+  _publicize_pending: '1'
+  _oembed_8d406024e73a917aaa25216ea6516ac2: "{{unknown}}"
+  _oembed_18268871e0cbf69a564dec1e797c993f: "{{unknown}}"
+  _oembed_0de673cdca740ecbfd2675d9fb2fcd9f: "{{unknown}}"
+  _oembed_07d525af6d1637039cfe225dadfca6d9: "{{unknown}}"
+  _oembed_efd6c3c2aedd9eb7630e57cf9d3f6fe8: "{{unknown}}"
+  _oembed_88d5599061065df5bc134bfba79abfd9: "{{unknown}}"
+  _oembed_d437802bbb31f2f730a4d3dea5a59e9f: "{{unknown}}"
+  _oembed_7067c830edb5aa505fe1607526334df8: "{{unknown}}"
+  _oembed_044af6e640de80d1a91c6b2edcae0d9b: "{{unknown}}"
+  _oembed_c5df23838284077336e7d61ced15b4ad: "{{unknown}}"
+  _oembed_6e350353ecebb1562f703e0832f780ad: "{{unknown}}"
+  _oembed_11edcf87da0d460fd62e30f6c3cac206: "{{unknown}}"
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p><a href="https://github.com/stevenalexander/dropwizard-security">Sample application</a> showing how to use security providers in your Dropwizard application.</p>
+<p>Includes an example custom security provider which can be injected into your service and used in Resource methods to authenticate requests and apply authorisation. Can be extended to implement a full authentication and authorisation for the service.</p>
+<h2>Introduction<br />
+<a class="anchor" href="https://github.com/stevenalexander/dropwizard-security#setup" name="user-content-setup"></a></h2>
+<p>The majority of the provider in this sample project was based off the <a href="https://dropwizard.github.io/dropwizard/manual/auth.html">BasicAuthProvider</a> from Dropwizard auth library, I wanted to do this to understand better how the injectable security provider works and figure out how it could be used to implement authentication and authorisation.</p>
+<p>Also wanted to ensure I could easily extend and test any resources using the security, as the overhead for a security system is important in keeping your code clean and not obscuring the intended purpose with security code.</p>
+<h2><a class="anchor" href="https://github.com/stevenalexander/dropwizard-security#details" name="user-content-details"></a>Details</h2>
+<p>Implementing the custom security provider requires three classes (in com.example.security):</p>
+<ul class="task-list">
+<li><a href="https://github.com/stevenalexander/dropwizard-security/blob/master/src/main/java/com/example/security/ExampleCredentials.java">ExampleCredentials</a>Holds the credentials extracted from the request, e.g. username/password or a token from a cookie.</li>
+<li><a href="https://github.com/stevenalexander/dropwizard-security/blob/master/src/main/java/com/example/security/ExampleAuthenticator.java">ExampleAuthenticator</a>Takes the credentials and authenticates them, returning a principle (user) object, throwing an AuthenticationException if the credentials are invalid.</li>
+<li><a href="https://github.com/stevenalexander/dropwizard-security/blob/master/src/main/java/com/example/security/ExampleSecurityProvider.java">ExampleSecurityProvider</a>Is injected into the service so any request decorated with the Dropwizard Auth attribute will be handled by this provider. Extracts credentials from requests, uses an authenticator to check them and throws WebExceptions if not authenticated.
+<pre><code>/**
+ * An example security provider that will look at each request when received by an endpoint using the auth attribute
+ * and check that it has a header value containing a token and will authenticate the token to get the Principle (User)
+ * for the request (otherwise throw an AuthenticationException). That Principle is the authenticated User associated
+ * with the request and the resource method handling the request can use it to check authorisation to perform actions.
+ *
+ * @param &lt;T&gt; The Principle class (User) to be returned when a request is authenticated
+ */
+public class ExampleSecurityProvider&lt;T&gt; implements InjectableProvider &lt;Auth, Parameter&gt; {
+    ...
+    public ExampleSecurityProvider(Authenticator&lt;ExampleCredentials, T&gt; authenticator) {
+        this.authenticator = authenticator;
+    }
+    ...
+    private static class ExampleSecurityInjectable&lt;T&gt; extends AbstractHttpContextInjectable&lt;T&gt; {
+        ...
+        @Override
+        public T getValue(HttpContext c) {
+            // This is where the credentials are extracted from the request
+            final String header = c.getRequest().getHeaderValue(CUSTOM_HEADER);
+            try {
+                if (header != null) {
+                    final Optional&lt;T&gt; result = authenticator.authenticate(new ExampleCredentials(header));
+                    if (result.isPresent()) {
+                        return result.get();
+                    }
+                }
+            } catch (AuthenticationException e) {
+                throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+            }
+
+            if (required) {
+                throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+            }
+
+            return null;
+        }
+    }
+</code></pre>
+</li>
+</ul>
+<p>The security provider is injected into the service in the Service class.</p>
+<pre><code>public class ExampleService extends com.yammer.dropwizard.Service&lt;ExampleConfiguration&gt; {
+    ...
+    @Override
+    public void run(ExampleConfiguration configuration, Environment environment) throws Exception {
+        environment.addResource(new UserResource());
+
+        // Adds security provider so resource methods decorated with auth attribute will use this authenticator
+        environment.addProvider(new ExampleSecurityProvider&lt;User&gt;(new ExampleAuthenticator()));
+    }
+</code></pre>
+<p>Resources using authentication just add the Auth attribute to their method signature.</p>
+<pre><code>@Path("/user")
+@Consumes({MediaType.APPLICATION_JSON})
+@Produces({MediaType.APPLICATION_JSON})
+public class UserResource {
+    ...
+    /*
+    * Using the Auth attribute will use the injected provider to authenticate all requests to this path
+    * You can also use the principal to apply authorisation in code dynamically
+     */
+    @GET
+    public List&lt;User&gt; getAll(@Auth User principal){
+
+        if (!principal.getDisplayRole().equals(User.ROLE_ADMIN)) {
+            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+        }
+        ...
+</code></pre>
+<p>Testing the resources requires injecting a provider into the test service (note, I used the full one but for simplicity you can inject a mock which would return a controllable principal).</p>
+<pre><code>public class UserResourceTests extends ResourceTest {
+    ...
+    @Override
+    protected void setUpResources() {
+        addResource(new UserResource());
+
+        // Need to add SecurityProvider to all resource tests for resources using Auth, or you get 415 response
+        // you can inject the authenticator to mock authentication results while ensuring you test true to how
+        // the call will be made
+        final ExampleAuthenticator authenticator = new ExampleAuthenticator();
+        addProvider(new ExampleSecurityProvider&lt;&gt;(authenticator));
+    }
+
+    @Test
+    public void getAll() throws Exception {
+        List&lt;User&gt; users = client().resource("/user")
+                                   .header(ExampleSecurityProvider.CUSTOM_HEADER, "validAdminToken")
+                                   .get(new GenericType&lt;List&lt;User&gt;&gt;() {});
+        assertEquals(2, users.size());
+        assertEquals("user1", users.get(0).getUsername());
+    }
+
+    @Test
+    public void getAllThrows401WhenNotAuthenticatedToken() throws Exception {
+        try {
+            client().resource("/user")
+                    .get(new GenericType&lt;List&lt;User&gt;&gt;() {});
+
+            fail("Should have thrown 401");
+        } catch (UniformInterfaceException ex) {
+            assertEquals(ex.getResponse().getStatus(), 401);
+        }
+    }
+    ...
+</code></pre>
+<h2><a class="anchor" href="https://github.com/stevenalexander/dropwizard-security#conclusion" name="user-content-conclusion"></a>Conclusion</h2>
+<p>Using the injectable security provider you can implement an extremely flexible authentication and authorisation system in your service, while keeping the code overhead in your resource methods and tests minimal via the Auth attributes. In terms of simplicity it blows away a lot of security libraries I've worked with for other frameworks.</p>

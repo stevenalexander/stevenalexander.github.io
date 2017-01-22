@@ -1,0 +1,47 @@
+---
+layout: post
+title: Vagrant script using Puppet for Nginx web server
+date: 2014-10-02 08:00:06.000000000 +01:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- nginx
+- provision
+- puppet
+- sample
+- ubuntu
+- vagrant
+- VM
+meta:
+  _edit_last: '46212493'
+  geo_public: '0'
+  _publicize_pending: '1'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p>I've been learning more about puppet, so I've made a simple example showing how to provision a Ubuntu 14.04 Nginx web server VM using Vagrant and Puppet.</p>
+<p>Source is <a href="https://github.com/stevenalexander/vagrant-ubuntu-14-puppet-nginx">here</a>.</p>
+<p>Requires:</p>
+<ul>
+<li>Vagrant</li>
+<li>VirtualBox/VMWare (tested virtualbox only)</li>
+</ul>
+<h2><a class="anchor" href="https://github.com/stevenalexander/vagrant-ubuntu-14-puppet-nginx#start" name="user-content-start"></a>Start</h2>
+<pre><code># Starts up VM and runs puppet to setup, downloading box if necessary
+vagrant up
+# On completion nginx should be running and accessible from host at http://192.168.33.10
+</code></pre>
+<h2><a class="anchor" href="https://github.com/stevenalexander/vagrant-ubuntu-14-puppet-nginx#details" name="user-content-details"></a>Details</h2>
+<p>Used <a href="https://forge.puppetlabs.com/jfryman/nginx">jfryman-nginx</a> v0.1.1 module to puppetize nginx, added using:</p>
+<pre><code>puppet module install jfryman-nginx  --modulepath puppet/modules
+</code></pre>
+<p>This module does not include default index.html or config, so I added a vhost in site.pp (manifests/site.pp) and created a custom puppet module site_content (puppet/modules/site_content) which ensures /var/www exists and creates a simple index.html file.</p>
+<h2><a class="anchor" href="https://github.com/stevenalexander/vagrant-ubuntu-14-puppet-nginx#notes" name="user-content-notes"></a>Notes</h2>
+<p>This is a bare bones example and does not include any security or configuration best practise, so do not use in production.</p>
+<p>Any change to the puppet files requires you to run 'vagrant provision' to update.</p>

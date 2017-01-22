@@ -1,0 +1,47 @@
+---
+layout: post
+title: Using JQuery UI to create a complex ordered reference data editor
+date: 2012-02-27 12:21:00.000000000 +00:00
+type: post
+published: true
+status: publish
+categories:
+- Dev
+tags:
+- aspmvc
+- jquery
+- jqueryui
+- net
+- sortable
+meta:
+  _original_post_id: ''
+  _original_import_author: Steven A
+  _edit_last: '46212493'
+  _oembed_eab90192c5144b7661e6b5cfc48c222c: "{{unknown}}"
+  _oembed_a7a0c1caa3473ec945882840db4322fd: "{{unknown}}"
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+excerpt: JQuery is great, as is JQuery UI. I had a requirement in a project to create
+  an admin screen to edit reference data used in drop downs for other screens. The
+  drop down options had to be ordered, enabled/disabled and allow users to add new
+  options....
+---
+<p>JQuery is great, as is JQuery UI.</p>
+<p>
+<div class="p_embed p_image_embed"><a href="http://stevenwilliamalexander.files.wordpress.com/2012/02/sortable1-scaled1000.png"><img alt="Sortable1" height="183" src="{{ site.baseurl }}/assets/sortable1-scaled1000.png?w=300" width="500" /></a></div></p>
+<p>I had a requirement in a project to create an admin screen to edit reference data used in drop downs for other screens. The drop down options had to be ordered, enabled/disabled and allow users to add new options. Before JQuery I would have implemented this using a very message control with multiple buttons for Enable/Disable/Up/Down, all causing postbacks or using very large amounts of Javascript.</p>
+<p>Using JQuery UI Sortable control I was able to do this very cleanly, just two ordered lists setup as connected and some neat Javascript to add/remove. Now I have a very UX friendly drag/drop list that users can re-order the options as they like.</p>
+<p>
+<div class="p_embed p_image_embed"><a href="http://stevenwilliamalexander.files.wordpress.com/2012/02/sortable2-scaled1000.png"><img alt="Sortable2" height="164" src="{{ site.baseurl }}/assets/sortable2-scaled1000.png?w=300" width="500" /></a></div></p>
+<p>Source (zip embedded in word doc as Posterous doesn't like zips):</p>
+<p>
+<div class="p_embed p_file_embed"><a href="http://getfile6.posterous.com/getfile/files.posterous.com/temp-2012-02-27/hmJAjcjlIlHbwfxoEcufnoJoqIvGvniEhJhdCfzdCGkseqkFeouDmAyDjiHq/JQueryUISortableOrderedConnectedLists.docx" />
+<div class="p_icon"></div>
+<div class="p_text">JQueryUISortableOrderedConnectedLists.docx</div>
+</div>
+<p>Links:</p>
+<p><a href="http://jqueryui.com/demos/sortable/#connect-lists">http://jqueryui.com/demos/sortable/#connect-lists</a></p>

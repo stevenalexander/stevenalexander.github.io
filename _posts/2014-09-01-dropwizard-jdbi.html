@@ -1,0 +1,31 @@
+---
+layout: post
+title: Dropwizard JDBI
+date: 2014-09-01 08:52:26.000000000 +01:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- '7.1'
+- database
+- dropwizard
+- h2
+- java
+- jdbi
+- sample
+meta:
+  _edit_last: '46212493'
+  geo_public: '0'
+  _publicize_pending: '1'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p>I've made a<a href="https://github.com/stevenalexander/dropwizard-jdbi"> test project</a> for <a href="https://dropwizard.github.io/dropwizard/">Dropwizard 7.1 </a>using <a href="http://jdbi.org/">JDBI</a> to interact with a DB.</p>
+<p>Also using <a href="http://flywaydb.org/">Flyway</a> and <a href="http://www.h2database.com/html/main.html">H2</a> to create an in memory DB with test data for integration testing. Flyway solution can be expanded to create a fully featured Database Migration process using any JBDC compatible Database you can connect to. Using it here was overkill as I could have just used a simple script, I wanted to try it out as a comparison to Liquibase.</p>
+<p>Code for JDBI integration was trivial, most of the effort was getting my head around the fact that I didn't have to do anything to startup the H2 instance (it starts itself as embedded instance when you try to connect to the local DB file by black magic). For reference the most useful stuff is probably in the build.gradle, libraries and plugins used.</p>
+<p>No major changes between using 6.2 and 7.1 with JDBI, just package names. Didn't do integration tests as I figured for a real project it would make more sense to do full stack integration testing against the service and the production DB.</p>

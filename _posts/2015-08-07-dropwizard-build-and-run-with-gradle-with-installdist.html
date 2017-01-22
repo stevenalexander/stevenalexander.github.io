@@ -1,0 +1,29 @@
+---
+layout: post
+title: Dropwizard build and run with Gradle with installDist
+date: 2015-08-07 09:54:12.000000000 +01:00
+type: post
+published: true
+status: publish
+categories:
+- dropwizard
+- gradle
+tags: []
+meta:
+  _rest_api_published: '1'
+  _rest_api_client_id: "-1"
+  _publicize_job_id: '13490962379'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p>I've been using Gradle for over a year now for my Dropwizard examples but I never really did much with it, just simple build and using OneJar to make my application into a single fat jar file for distribution.</p>
+<p>Recently I had a problem that when using the AssetsBundle that my fat jar wasn't putting the static resource files in the correct location and after extracting the jar I saw how ugly and complicated it was making things.</p>
+<p>This made me look for an alternative way to build and distribute my application and I found Gradle's installDist task. This is part of Gradle's standard <a href="https://docs.gradle.org/current/userguide/application_plugin.html">Application</a> plugin. It builds your application, puts the compiled main jar into build/install/<em>projectname</em> directory along with the dependency jars and a generated start script that references the main class and all dependencies. You can customise the start script and include java options for your application by environment variables (useful for overriding config and setting ports). There are tasks distZip and distTar to compress the install folder for making a single build artifact.</p>
+<p>Here is the command I used to run my application in a Heroku Procfile from the install folder:</p>
+<pre>export JAVA_OPTS=-Ddw.server.connector.port=$PORT &amp;&amp; build/install/offline/bin/offline server config.yml</pre>
+<p>You will need to customise your build.gradle to include your config file in the dist and I'd recommend explicitly setting the project name in a settings.gradle file as otherwise its based on folder names (which CI can mess up).</p>
+<p>This approach removes needing a fat jar plugin in your build and all the complexity that introduces like merging and de-duplication, keeping your application in the form you would be locally developing and debugging it. It does make your deployed version more complicated, as now you have to manage many files rather than a single jar and config file, but this is not a complex CI problem.</p>

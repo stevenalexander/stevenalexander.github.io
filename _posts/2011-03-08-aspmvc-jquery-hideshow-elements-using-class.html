@@ -1,0 +1,41 @@
+---
+layout: post
+title: ASP.MVC - JQuery - Hide/Show elements using class
+date: 2011-03-08 14:29:00.000000000 +00:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- aspmvc
+- jquery
+- net
+meta:
+  _original_post_id: ''
+  _original_import_author: Steven A
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+excerpt: Not specifically ASP.MVC related, but I used JQuery because of it so I'm
+  grouping it in anyway. Created for a screen which needed to hide/show controls based
+  on a radio button list selection, something which I've done before but the simplicity
+  of ...
+---
+<p>Not specifically ASP.MVC related, but I used JQuery because of it so I'm grouping it in anyway.</p>
+<p>Created for a screen which needed to hide/show controls based on a radio button list selection, something which I've done before but the simplicity of how to implement it with JQuery impressed me so I'm blogging it.</p>
+<p>It uses two bits of standard JQuery functionality, selecting elements based on class and applying css styles to the selection of elements.</p>
+<ul>
+<li>Decorate the elements to hide/show with css classes which will control when they are displayed, table rows in this example:</li>
+</ul>
+<p>
+<div class="p_embed p_image_embed"><img alt="Capture" height="137" src="{{ site.baseurl }}/assets/capture-scaled500.png?w=300" width="374" /></div></p>
+<ul>
+<li>Then create a Javascript function which will use the JQuery class selector to find those elements and set the css to hide/show, this function will be called when the document is loaded to setup the page based on the selected radio button value.</li>
+</ul>
+<p>
+<div class="p_embed p_image_embed"><a href="http://stevenwilliamalexander.files.wordpress.com/2011/03/capture-scaled1000.png"><img alt="Capture" height="200" src="{{ site.baseurl }}/assets/capture-scaled1000.png?w=300" width="500" /></a></div>
+<p>Simple! Doing it using plain JS would have been much longer and harder to maintain (changing the elements to display just requires modifying the classes).</p>
+<p>&nbsp;</p>

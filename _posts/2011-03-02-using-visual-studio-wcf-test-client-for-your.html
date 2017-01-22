@@ -1,0 +1,32 @@
+---
+layout: post
+title: Using Visual Studio WCF test client for your new WCF web services after renaming
+  service
+date: 2011-03-02 15:02:00.000000000 +00:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- net
+- visualstudio
+- wcf
+- webservices
+meta:
+  _original_post_id: ''
+  _original_import_author: Steven A
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+excerpt: Visual Studio 2010 comes with a built in test client for testing and debugging
+  your WCF web services, but if you're like me you haven't used it much because it
+  never activates when debugging your WCF web application (it opens a browser window
+  inst...
+---
+<p>Visual Studio 2010 comes with a built in test client for testing and debugging your WCF web services, but if you're like me you haven't used it much because it never activates when debugging your WCF web application (it opens a browser window instead) after you changed the service name from Service.svc.</p>
+<p>I just realised this is because it loses the svc file as the start page, if you right click on your svc file and select "Set as Start Page" it will open the WCF test client and allow you to debug away.</p>
+<p>
+<div class="p_embed p_image_embed"><a href="http://stevenwilliamalexander.files.wordpress.com/2011/03/capture-scaled10001.png"><img alt="Capture" height="316" src="{{ site.baseurl }}/assets/capture-scaled10001.png?w=300" width="500" /></a></div></p>

@@ -1,0 +1,31 @@
+---
+layout: post
+title: 'Play compile error - java.util.NoSuchElementException: Either.left.value on
+  Right'
+date: 2013-03-20 10:20:37.000000000 +00:00
+type: post
+published: true
+status: publish
+categories:
+- Dev
+- jvm
+- scala
+tags:
+- compile
+- error
+- scala
+meta:
+  _edit_last: '46212493'
+  _publicize_pending: '1'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p>Got this mysterious error when trying to build a scala play solution containing multiple projects (common projects which the play projects had dependencies on):</p>
+<pre>[error] {file:/mnt/jenkins/workspace/myproj/}mysubproj/compile:sources: java.util.NoSuchElementException: Either.left.value on Right</pre>
+<p>Turned out the problem was I hadn't specified the scala version for the common projects, so they were being built with scala 2.9.2 while the play projects tried to build with 2.9.1, causing the issue.</p>
+<p>Fixed it by specifying the scala version for all projects in my Build.scala:</p>
+<pre>scalaVersion := "2.9.1"</pre>

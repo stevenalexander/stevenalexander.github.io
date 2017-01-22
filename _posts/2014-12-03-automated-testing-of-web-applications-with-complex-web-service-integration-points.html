@@ -1,0 +1,47 @@
+---
+layout: post
+title: Automated testing of web applications with complex web service integration
+  points
+date: 2014-12-03 09:44:43.000000000 +00:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- automated
+- selenium
+- testing
+meta:
+  _publicize_pending: '1'
+  _rest_api_published: '1'
+  _rest_api_client_id: "-1"
+  _wpas_skip_facebook: '1'
+  _wpas_skip_google_plus: '1'
+  _wpas_skip_twitter: '1'
+  _wpas_skip_linkedin: '1'
+  _wpas_skip_tumblr: '1'
+  _wpas_skip_path: '1'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p>I'm currently on a project which has a testing problem. The problem is it has a complex web application with multiple web service integration points, some of which are sometimes flaky, have complex dataloads or difficult to setup. This means that our automated web tests (done in Selenium) can be slow, unreliable and tricky to setup (requiring automating setup steps as well as the tests themselves).</p>
+<p>Some of those are problems which need to be solved in the service dependencies and can't be ignored as part of proper integration tests, but at the same time it would be good to be able to quickly test the web UI aspect in isolation for Javascript components (using AngularJS) and browser compatibility without having these separate integration tests wrecking entire test runs.</p>
+<p>To achieve this I would like to create a simple web application that mocks and mimics various services, allowing the automated tests to setup canned responses from the services, similar to how a mocked service would be used in a unit test. Basically before an automated test executes it would post one or more canned responses which would go into a stack on the mimicking  service, then as the automated test executes it's steps should cause requests to fire against the mimic service which will respond from it's response stack (FIFO). Responses could be added to various queues to mimic different endpoints, resources or services.</p>
+<p>Objectives for mimic application:</p>
+<ul>
+<li>Simple, must be easy to write a canned response or series of responses for tests</li>
+<li>Fast, if it can't respond significantly faster than the real integration points theres no advantage</li>
+<li>Flexible, to handle mocking different types of services</li>
+<li>Handle multiple endpoints, so you don't need to host multiple versions for different services</li>
+</ul>
+<p>Disadvantages of this approach:</p>
+<ul>
+<li>Adds complexity to web tests (hopefully balanced out by removing more setup code)</li>
+<li>Won't catch regression issues from integration point changes</li>
+<li>Need to maintain canned responses in tests</li>
+</ul>
+<p>Will update when I have some simple code ready on Github.</p>

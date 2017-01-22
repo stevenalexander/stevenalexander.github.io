@@ -1,0 +1,74 @@
+---
+layout: post
+title: Design - Minimalist principle of least privilege web application approach
+date: 2017-01-13 16:37:18.000000000 +00:00
+type: post
+published: true
+status: publish
+categories: []
+tags: []
+meta:
+  _thumbnail_id: '783'
+  _rest_api_published: '1'
+  _rest_api_client_id: "-1"
+  _publicize_job_id: '718983060'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p><img class="alignnone size-full wp-image-783" src="{{ site.baseurl }}/assets/principle-of-least-privilege-db-design-1.png" alt="principle-of-least-privilege-db-design-1" width="783" height="338" /></p>
+<p>I used this design on a recent project and wanted to write up my thoughts.</p>
+<p>This approach was taken as the project was a small scale web application with quick time scales. I'd previously worked on several projects which took a generic web-api-db pattern, even when there was no plan or ability to scale or separate the components out, so the implementation increased complexity for little gain. Also principle of least privilege had come up in some security reviews, database permissions not really being considered early on.</p>
+<p>I wanted to see if I could cut out the API components, that added an additional layer of mainly boilerplate code, without resorting to a monolith design. This also reduced the complexity of the infrastructure and networking. Experience from looking at database permissions made me aware that users/roles/schemas permissions can be set very fine grained, providing assurances that connections can be locked down to specific tables/operations (e.g. SELECT/UPDATE only, no DELETE)</p>
+<p>You could take this  further and go for full microservice split, with internal/external each having a separate worker and communicating via limited exposed API endpoints, but for this project that wasn't really necessary and I was sick of designs dictated by patterns rather than needs.</p>
+<h2>Scenario</h2>
+<p>You have two applications:</p>
+<ul>
+<li><strong>external-web</strong>
+<ul>
+<li>Public site used by unauthenticated users and exposed to the internet</li>
+<li>Allows users to submit application data to be processed, with a limited view of previously submitted application data</li>
+<li>High risk, don't want users to potentially view other users application data or change details</li>
+<li>Higher usage than internal (public facing, unpredictable traffic)</li>
+</ul>
+</li>
+<li><strong>internal-site</strong>
+<ul>
+<li>Internal site used by authenticated users and IP restricted</li>
+<li>Allows users to process applications</li>
+<li>Lower risk, but still don't want users to be able to perform actions like deleting records or submitting applications</li>
+<li>Low number of active users (small team)</li>
+</ul>
+</li>
+</ul>
+<h3><a id="user-content-proposed-solution" class="anchor" href="https://github.com/stevenalexander/node-knex-principle-of-least-privilege#proposed-solution"></a>Proposed solution:</h3>
+<ul>
+<li>Split the data stores, so <strong>external-web</strong> and <strong>internal-web</strong> have their own stores, with <strong>external-web</strong> only holding data as long as necessary</li>
+<li>Use permissions to prevent each application from doing anything other than the minimum they need on their stores (principle of least privilege)</li>
+<li>Use a worker application, not exposed or directly connected to either application, to move data between the two</li>
+<li>Use either a special API or function to allow <strong>external-web</strong> to query historic data with limited access, so it cannot query the entire store</li>
+</ul>
+<h3>Thoughts on outcome</h3>
+<h4>Pros</h4>
+<ul>
+<li>Simple and low number of components (moving parts that could go wrong)</li>
+<li>Low infrastructure requirements</li>
+<li>Still able to scale internal/external independently</li>
+<li>Less code and complexity</li>
+<li>Public facing site only has access to data in transit, not large amounts of long term data</li>
+</ul>
+<h4>Cons</h4>
+<ul>
+<li>Public facing application has access to database (even if limited to select/updates)</li>
+<li>Unable to scale external/internal API independently from sites</li>
+<li>Worker unable to scale independently of external/internal</li>
+<li>Lose a lot of relational integrity from copying between stores if using relational stores</li>
+</ul>
+<h3>Links</h3>
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Principle_of_least_privilege">Principle of least privilege</a></li>
+<li><a href="https://github.com/stevenalexander/node-knex-principle-of-least-privilege">E</a><a href="https://github.com/stevenalexander/node-knex-principle-of-least-privilege">xample implementation with node/Azure SQL</a></li>
+</ul>

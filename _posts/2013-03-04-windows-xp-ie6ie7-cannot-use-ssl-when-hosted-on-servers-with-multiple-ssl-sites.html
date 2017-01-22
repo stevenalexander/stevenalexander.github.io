@@ -1,0 +1,25 @@
+---
+layout: post
+title: Windows XP IE6/IE7 cannot use SSL when hosted on servers with multiple SSL
+  sites
+date: 2013-03-04 16:18:31.000000000 +00:00
+type: post
+published: true
+status: publish
+categories:
+- Dev
+tags: []
+meta:
+  _edit_last: '46212493'
+  _publicize_pending: '1'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p>Users reporting SSL certificate errors? They're on Windows XP IE6/IE7? Other users not seeing the same issues, even on Vista IE7?</p>
+<p>Confused? I was. Turns out the answer is pretty simple and well known, IE is crap. Specifically IE7 and lower on Windows XP does not support SNI (<a href="http://en.wikipedia.org/wiki/Server_Name_Indication">Server Name Indication</a>).</p>
+<p>This means that if you are hosting your HTTPS site on a server with other sites using HTTPS (port 443) IE will not tell your web server which subdomain to look for when requesting the certificate (e.g. give me the cert for  mysite1.com versus mysite2.com, like it does when making the normal request). So your web server returns the first one under port 443 that matches, because it has nothing to id the target configuration. If this is the incorrect cert it won't match the domain and IE will give an SSL error.</p>
+<p>There's no smart way around this, nothing can force the client to send the right info in the certificate request, so if you want your SSLs to work for older machines you need to split out your sites onto different machines.</p>

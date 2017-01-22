@@ -1,0 +1,31 @@
+---
+layout: post
+title: Infrastructure as code, containers as artifacts
+date: 2016-03-15 14:06:54.000000000 +00:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- ci
+- containerisation
+- docker
+meta:
+  _thumbnail_id: '507'
+  _publicize_job_id: '20780043237'
+  _rest_api_published: '1'
+  _rest_api_client_id: "-1"
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p>As a developer, one of the things I love about containers is how fast they are are to create, spin up and then destroy. For rapid testing of my code in production like environments this is invaluable.</p>
+<p>But containers offer another advantage, stability. Containers can be versioned, defined with static build artifact copies of the custom components they will host and explicitly versioned dependencies (e.g. nginx version). This allows for greater control in release management, knowing exactly what version of not just the custom code you have on an environment but the infrastructure running it. Your containers become an artifact of your build process.</p>
+<p>While managing versions of software has long been standard practise, this isn't commonly extended to the use of infrastructure as code (environment creation/update by scripts and tools like Puppet). Environments are commonly moving targets, separation of development and operations teams mean software and environment releases are done independently, with environment dependencies and products being patched independently of functionality releases (security patching, version updates etc.). This can cause major regression issues which often can't be anticipated until it hits pre-production (if you are lucky).</p>
+<p>By using containerisation with versioning you can control the release of environmental changes with precise control, something that is very important when dealing with a complex distributed architecture. You can release and test changes to individual servers, then trace back issues to the changes introduced. The containers that make up your infrastructure become build artifacts, which can be identified and updated like any other.</p>
+<p>Here's a sequence diagram showing how this can be introduced into your build process:</p>
+<p><img class="alignnone size-full wp-image-507" src="{{ site.baseurl }}/assets/containers-as-artifacts-1.png" alt="Containers as artifacts (1)" width="1052" height="811" /></p>
+<p>At the end of this process you have a fixed release deployed into production, with traceable changes to both custom code and infrastructure. Following this pattern allows upfront testing of infrastructure changes (including developer level) and makes it very difficult to accidentally cause any differences between your test and production environments.</p>

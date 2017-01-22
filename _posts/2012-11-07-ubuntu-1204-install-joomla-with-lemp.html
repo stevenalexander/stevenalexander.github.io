@@ -1,0 +1,168 @@
+---
+layout: post
+title: Ubuntu 12.04 - Install Joomla with LEMP
+date: 2012-11-07 12:34:16.000000000 +00:00
+type: post
+published: true
+status: publish
+categories:
+- Setup
+tags:
+- joomla
+- lamp
+- lemp
+- linux
+- mysql
+- nginx
+- php
+- setup
+- ubuntu
+meta:
+  _original_post_id: ''
+  _original_import_author: Steven A
+  _edit_last: '46212493'
+  _oembed_60a2e276929257de3bedec19207e1a35: "{{unknown}}"
+  _oembed_93e9cf6b6ceca5495c95c40383cf4c17: "{{unknown}}"
+  _oembed_95d050ba0b8d2e36e35d95393b2b9e97: "{{unknown}}"
+  _oembed_51560773ca2a3b9f105c6fbbd9efc913: "{{unknown}}"
+  _oembed_0c4cadf55925772a2009f99420a0b34c: "{{unknown}}"
+  _oembed_20fe132bc627ca8db8f4b05eb124b41b: "{{unknown}}"
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+excerpt: This is a simple step by step guide for install Joomla CMS onto a Ubuntu
+  12.04 server with LEMP stack (Linux Nginx MySQL PHP). joomla Update sudo apt-get
+  update LEMPInstall Nginxsudo apt-get install nginx sudo /etc/init.d/nginx start
+  Test nginx ha...
+---
+<p>This is a simple step by step guide for install Joomla CMS onto a Ubuntu 12.04 server with LEMP stack (Linux Nginx MySQL PHP).</p>
+<p>joomla</p>
+<ol>
+<li>Update
+<ul>
+<li><strong>sudo apt-get update</strong></li>
+</ul>
+</li>
+<li>LEMP
+<ol>
+<li>Install Nginx
+<ol>
+<li><strong>sudo apt-get install nginx</strong></li>
+<li><strong>sudo /etc/init.d/nginx start</strong></li>
+<li>Test nginx has started by navigating to server url and checking "Welcome to nginx"</li>
+</ol>
+</li>
+<li>Install PHP and plugins
+<ol>
+<li><strong>sudo apt-get install php5-cli php5-fpm php5-mysql</strong></li>
+<li>Config nginx to work with PHP
+<ul>
+<li><strong>sudo vim /etc/nginx/sites-available/default</strong></li>
+<li>In server section
+<ul>
+<li>change <em>"index index.html index.htm;"</em> to <em>"index index.html index.htm index.php;"</em></li>
+<li>Look for the&nbsp;<em>"location ~ .php$ {"</em> block and edit as below:</li>
+<li>
+<div style="background:white;overflow:auto;color:black;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;">
+<div class="CodeRay">
+<div class="code">
+<pre># pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000        #        location ~ .php$ {                try_files $uri =404;                fastcgi_split_path_info ^(.+.php)(/.+)$;        #       # NOTE: You should have &quot;cgi.fix_pathinfo = 0;&quot; in php.ini        #        #       # With php5-cgi alone:                fastcgi_pass 127.0.0.1:9000;                # With php5-fpm:        #       fastcgi_pass unix:/var/run/php5-fpm.sock;                fastcgi_index index.php;                include fastcgi_params;        }</pre>
+</div>
+</div>
+</div>
+</li>
+<li><strong>sudo service nginx restart</strong></li>
+<li><strong>sudo vim /usr/share/nginx/www/phpinfo.php</strong></li>
+</ul>
+<ul>
+<li><em>&lt;? php phpinfo(); ?&gt;</em></li>
+</ul>
+</li>
+<li>Navigate to server url /phpinfo.php and check php info page appears</li>
+</ul>
+</li>
+</ol>
+</li>
+<li>Install MySQL
+<ol>
+<li><strong>sudo apt-get install mysql-server</strong></li>
+<li>Set root password</li>
+<li><em>Optional</em>: Install phpmyadmin</li>
+<li><strong>sudo apt-get install phpmyadmin</strong>
+<ol>
+<li>Select "apache2" for web server to config (doesn't matter)</li>
+<li>Select "no" for "configure database with dbconfig-common"</li>
+<li>Add the following to&nbsp;<strong>&nbsp;/etc/nginx/sites-available/default </strong>below the php section</li>
+</ol>
+<ul>
+<li>
+<div style="background:white;overflow:auto;color:black;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;">
+<div class="CodeRay">
+<div class="code">
+<pre>location /phpmyadmin {               root /usr/share/;               index index.php index.html index.htm;               location ~ ^/phpmyadmin/(.+.php)$ {                       try_files $uri =404;                       root /usr/share/;                       fastcgi_pass 127.0.0.1:9000;                       fastcgi_index index.php;                       fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;                       include /etc/nginx/fastcgi_params;               }               location ~* ^/phpmyadmin/(.+.(jpg|jpeg|gif|css|png|js|ico|html|xml|txt))$ {                       root /usr/share/;               }        }        location /phpMyAdmin {               rewrite ^/* /phpmyadmin last;        }</pre>
+</div>
+</div>
+</div>
+</li>
+</ul>
+</li>
+<li><strong>sudo vim /etc/php5/fpm/php.ini</strong>
+<ul>
+<li>add line<em> "extension=mysqli.so"</em></li>
+<li>uncomment (remove ";") <em>"mysqli.allow_local_infile = On"</em></li>
+</ul>
+</li>
+<li><strong>sudo&nbsp;/etc/init.d/php5-fpm restart</strong></li>
+<li><strong>sudo service nginx restart</strong></li>
+<li>Navigate to server url /phpmyadmin to check the admin client is working</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>Joomla
+<ol>
+<li><strong>Download and setup joomla dirs</strong>
+<ol>
+<li><strong>sudo mkdir -p /var/www/joomla/web</strong> (best practise name is domain name rather than joomla)</li>
+<li><strong>cd /tmp</strong></li>
+<li><strong>wget <a href="http://joomlacode.org/gf/download/frsrelease/17410/76012/Joomla_2.5.7-Stable-Full_Package.zip">http://joomlacode.org/gf/download/frsrelease/17410/76012/Joomla_2.5.7-Stable-...</a></strong> (get latest download url from <a href="http://www.joomla.org/download.html)">http://www.joomla.org/download.html)</a></li>
+<li><strong>sudo apt-get install unzip</strong></li>
+<li><strong>unzip Joomla_2.5.7-Stable-Full_Package.zip&nbsp;</strong></li>
+<li><strong>rm -f Joomla_2.5.7-Stable-Full_Package.zip&nbsp;</strong></li>
+<li><strong>sudo mv * /var/www/joomla/web/</strong></li>
+<li><strong>sudo chown -R www-data:www-data /var/www/joomla/web </strong>(allow nginx to write joomla files)</li>
+</ol>
+</li>
+<li>Create MySQL DB and user (joomla, joomla_admin/joomla_admin_password)</li>
+<li>
+<ol>
+<li><strong>mysqladmin -u root -p create joomla</strong></li>
+<li><strong>mysql -u root -p</strong></li>
+<li><strong>GRANT ALL PRIVILEGES ON joomla.* TO 'joomla_admin'@'localhost' IDENTIFIED BY 'joomla_admin_password';</strong></li>
+<li><strong>GRANT ALL PRIVILEGES ON joomla.* TO 'joomla_admin'@'localhost.localdomain' IDENTIFIED BY 'joomla_admin_password';</strong></li>
+<li><strong>FLUSH PRIVILEGES;</strong></li>
+<li><strong>quit;</strong></li>
+</ol>
+</li>
+<li>Make nginx config
+<ol>
+<li><strong>sudo vim /etc/nginx/sites-available/joomla</strong></li>
+<li>
+<div style="background:white;overflow:auto;color:black;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;">
+<div class="CodeRay">
+<div class="code">
+<pre>server {       listen 80;       server_name www.example.com example.com;       root /var/www/www.example.com/web;       if ($http_host != &quot;www.example.com&quot;) {                 rewrite ^ http://www.example.com$request_uri permanent;       }       index index.php index.html index.htm default.html default.htm;       location = /favicon.ico {                log_not_found off;                access_log off;       }       location = /robots.txt {                allow all;                log_not_found off;                access_log off;       }       # deny running scripts inside writable directories       location ~* /(images|cache|media|logs|tmp)/.*.(php|pl|py|jsp|asp|sh|cgi)$ {                return 403;                error_page 403 /403_error.html;       }       # Deny all attempts to access hidden files such as .htaccess, .htpasswd, .DS_Store (Mac).       location ~ /. {                deny all;                access_log off;                log_not_found off;       }       location / {                try_files $uri $uri/ /index.php?q=$uri&amp;$args;       }       # caching of files       location ~* .(ico|pdf|flv)$ {                expires 1y;       }       location ~* .(js|css|png|jpg|jpeg|gif|swf|xml|txt)$ {                expires 14d;       }       location ~ .php$ {                try_files $uri =404;                include /etc/nginx/fastcgi_params;                fastcgi_pass 127.0.0.1:9000;                fastcgi_index index.php;                fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;       }}</pre>
+</div>
+</div>
+</div>
+</li>
+<li>sudo ln -s /etc/nginx/sites-available/joomla /etc/nginx/sites-enabled/joomla</li>
+<li>sudo /etc/init.d/nginx reload</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>

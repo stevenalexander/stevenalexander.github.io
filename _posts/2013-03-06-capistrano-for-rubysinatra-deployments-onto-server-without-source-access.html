@@ -1,0 +1,63 @@
+---
+layout: post
+title: Capistrano for Ruby/Sinatra deployments onto server without source access
+date: 2013-03-06 11:26:32.000000000 +00:00
+type: post
+published: true
+status: publish
+categories:
+- capistrano
+- ruby
+- Setup
+tags:
+- capistrano
+- ruby
+- sinatra
+meta:
+  _publicize_pending: '1'
+  _edit_last: '46212493'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p>I put off using Capistrano as I thought it would take as much effort to learn as msbuild or ant, but after trying it I regret not doing it sooner. It's really simple to use, has great source integration and offers a very reliable process for deployments using ssh onto unix boxes. It works well with other languages/frameworks, so you can also deploy your Java/Scala/php projects. The focus of this post is deploying a simple Ruby/Sinatra app from git onto a server which doesn't have direct access to source (e.g. private git host).</p>
+<p>To use you will need SSH access to your servers</p>
+<p>First install Capistrano:</p>
+<p><em>gem install capistrano</em></p>
+<p>Prepare your project (in project dir, will generate default deployment files):</p>
+<p><em>capify .</em></p>
+<p>Ignore the Capfile created, it's pretty standard and you shouldn't have to touch it. Edit the <em>config/deploy.rb</em> file and clear down, this contains some standard Rails deployment stuff which you won't need.</p>
+<p><em>set :application, "My Sinatra Application"</em></p>
+<p><em>set :scm, :git</em></p>
+<p><em>set :repository,  "git@github.com:mygit/myproject.git"</em></p>
+<p><em>set :deploy_via, :copy # makes capistrano clone and copy source locally rather than on server</em></p>
+<p><em>set :deploy_to, "/var/www/mysite.com" # current release will be symlinked in '/var/www/mysite.com/current'</em></p>
+<p><em>set :user, "deploy" # user used to ssh onto server and perform tasks</em></p>
+<p><em>server "mysite.com", :app, :web, :db, :primary =&gt; true # server to deploy to, must be able to "ssh deploy@mysite.com"</em></p>
+<p><em>set :use_sudo, false # whether to use sudo on deploy actions</em></p>
+<p><em>namespace :deploy do</em></p>
+<p><em>  task :restart, :roles =&gt; :web do</em></p>
+<p><em>    run "echo this is where the actions necessary to restart the application should go"</em></p>
+<p><em>  end</em></p>
+<p><em>  task :finalize_update, :roles =&gt; :web do</em></p>
+<p><em>    # Overwrite default rails action and perform any steps before symlink</em></p>
+<p><em>    run "echo this is the path to the release folder #{ current_release }"</em></p>
+<p><em>  end</em></p>
+<p><em>end</em></p>
+<p>Run setup before deployment to create deployment folders:</p>
+<p><em>cap deploy:setup</em></p>
+<p>Check:</p>
+<p><em>cap deploy:check</em></p>
+<p>Deploy!</p>
+<p><em>cap deploy</em></p>
+<p>Now you should have your application copied over to the server under the<em> :deploy_to</em> 'current' folder. Old releases (default 5) will be stored in the 'release' folder. You can use the restart task to call any commands necessary to restart the application. You can do a lot more complex things, like setup dbs, stage multiple servers simultaneously, tag release in source etc.</p>
+<p>Useful links:</p>
+<ul>
+<li><span style="line-height:14px;"><a href="http://guides.beanstalkapp.com/deployments/deploy-with-capistrano.html">Guide for staging multiple servers</a><br />
+</span></li>
+<li><a href="https://gist.github.com/kix/3838682">Cheat sheet</a></li>
+<li><a href="http://www.karan.org/blog/index.php/2009/08/25/multiple-ssh-private-keys">Setting up multiple SSH keys</a></li>
+</ul>

@@ -1,0 +1,111 @@
+---
+layout: post
+title: Kubernetes authentication and authorisation single pod
+date: 2015-05-18 13:24:17.000000000 +01:00
+type: post
+published: true
+status: publish
+categories: []
+tags:
+- authentication
+- authorisation
+- containerisation
+- docker
+- kubernetes
+- Microservice
+meta:
+  _publicize_pending: '1'
+  _rest_api_published: '1'
+  _rest_api_client_id: "-1"
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+---
+<p>This is a description of the steps to deploy a complex microservice solution to Google Cloud Platform using <a href="http://kubernetes.io/">kubernetes</a> as a single Pod.</p>
+<p>This is based on my Docker authentication and authorisation solution, which I've written about <a href="https://stevenwilliamalexander.wordpress.com/2015/05/11/microservice-authentication-and-authorisation-using-docker/">here</a>.</p>
+<p><a href="https://github.com/stevenalexander/docker-authentication-authorisation">Source</a></p>
+<p>The solution is a web application using microservices to implement authentication and authorisation, consisting of 5 microservices and Nginx with Lua scripting, described <a href="https://github.com/stevenalexander/docker-authentication-authorisation">here</a>.</p>
+<p>Requires:</p>
+<ul>
+<li><a href="https://cloud.google.com/">Google Cloud</a> account (free trial needs payment details)</li>
+<li><a href="https://cloud.google.com/container-engine/docs/before-you-begin#install_the_gcloud_command_line_interface">gcloud</a> tools (I recommend you do one of the <a href="https://cloud.google.com/container-engine/docs/tutorials/hello-wordpress">container engine tutorials</a> first)</li>
+<li><a href="https://www.docker.com/">Docker</a></li>
+<li>JDK (to compile java file locally)</li>
+<li><a href="https://gradle.org/">Gradle</a> (for build automation)</li>
+</ul>
+<h2><a id="user-content-setup" class="anchor" href="https://github.com/stevenalexander/docker-authentication-authorisation/blob/master/kubernetes-single-pod.md#setup"></a>Setup</h2>
+<ol>
+<li>Build microservices and copy jar/config into volumes</li>
+</ol>
+<pre><code>gradle buildJar
+</code></pre>
+<ol>
+<li>Login to gcloud and set project/zone</li>
+</ol>
+<pre><code>gcloud auth login
+gcloud config set project PROJECTID
+gcloud config set compute/zone europe-west1-b
+</code></pre>
+<ol>
+<li>Build the container images and publish to <a href="https://cloud.google.com/tools/container-registry/">Google Container Registry</a></li>
+</ol>
+<p>These container images are largely the same as the definitions from the <a href="https://github.com/stevenalexander/docker-authentication-authorisation/blob/master/dev-docker-compose.yml">Development Docker Compose file</a> with the exception that the jars/config files are copied into the images to avoid needing mounted volumes.</p>
+<pre><code># Build
+docker build -t stevena/single-pod-nginx-lua:latest      -f kubernetes/single-pod-solution/Dockerfile-nginx-lua .
+docker build -t stevena/single-pod-frontend:latest       -f kubernetes/single-pod-solution/Dockerfile-frontend .
+docker build -t stevena/single-pod-authentication:latest -f kubernetes/single-pod-solution/Dockerfile-authentication .
+docker build -t stevena/single-pod-authorisation:latest  -f kubernetes/single-pod-solution/Dockerfile-authorisation .
+docker build -t stevena/single-pod-session:latest        -f kubernetes/single-pod-solution/Dockerfile-session .
+docker build -t stevena/single-pod-person:latest         -f kubernetes/single-pod-solution/Dockerfile-person .
+
+# Tag
+docker tag stevena/single-pod-nginx-lua      gcr.io/PROJECTID/single-pod-nginx-lua
+docker tag stevena/single-pod-frontend       gcr.io/PROJECTID/single-pod-frontend
+docker tag stevena/single-pod-authentication gcr.io/PROJECTID/single-pod-authentication
+docker tag stevena/single-pod-authorisation  gcr.io/PROJECTID/single-pod-authorisation
+docker tag stevena/single-pod-session        gcr.io/PROJECTID/single-pod-session
+docker tag stevena/single-pod-person         gcr.io/PROJECTID/single-pod-person
+
+# Publish
+gcloud preview docker push gcr.io/PROJECTID/single-pod-nginx-lua
+gcloud preview docker push gcr.io/PROJECTID/single-pod-frontend
+gcloud preview docker push gcr.io/PROJECTID/single-pod-authentication
+gcloud preview docker push gcr.io/PROJECTID/single-pod-authorisation
+gcloud preview docker push gcr.io/PROJECTID/single-pod-session
+gcloud preview docker push gcr.io/PROJECTID/single-pod-person
+</code></pre>
+<ol>
+<li>Create the Cluster, Pod and allow external web access</li>
+</ol>
+<pre><code># Create cluster
+gcloud alpha container clusters create ms-auth --num-nodes 1 --machine-type g1-small
+gcloud config set container/cluster ms-auth
+
+# Pods
+gcloud alpha container kubectl create -f kubernetes/single-pod-solution/single-pod.json
+# see pod and get external IP from HOST column `gcloud alpha container kubectl get pods`
+
+# Allow external web access
+gcloud compute firewall-rules create k8s-ms-auth-node-80 --allow tcp:80 --target-tags k8s-ms-auth-node
+
+# View site by pod external IP
+
+# DEBUG
+# check pod logs with `gcloud alpha container kubectl log single-ms-auth person`,
+# ssh onto node with `gcloud compute ssh k8s-ms-auth-node-1`, access container `sudo docker exec -it CONTAINERID bash`
+</code></pre>
+<h2><a id="user-content-clean-up" class="anchor" href="https://github.com/stevenalexander/docker-authentication-authorisation/blob/master/kubernetes-single-pod.md#clean-up"></a>Clean up</h2>
+<pre><code>gcloud alpha container clusters delete ms-auth
+gcloud compute firewall-rules delete k8s-ms-auth-node-80
+</code></pre>
+<h2><a id="user-content-conclusion" class="anchor" href="https://github.com/stevenalexander/docker-authentication-authorisation/blob/master/kubernetes-single-pod.md#conclusion"></a>Conclusion</h2>
+<p>This architecture is a single <a href="https://github.com/GoogleCloudPlatform/kubernetes/blob/master/docs/pods.md">pod</a> running on a single node with all the components. It's basically the same as running it locally for development and doesn't offer any horizontal scaling. Didn't require much changes to the configuration, only updating server names to localhost (containers in a pod can address each other locally). It could be scaled by creating a data persistence pod for a database, updating config to point all the services which need persistence at it, then placing a load balancer in front of the pod and creating multiple nodes hosting the web/data persistence pod.</p>
+<p>Going forward I would like to work with volumes, split the services into individual pods/services to allow full scaling and try out separate data persistence.</p>
+<p>I noticed a couple of things while trying to get this working:</p>
+<ul>
+<li>You can't open firewall access to the pod to non-standard ports (e.g. port 8081), something blocks access to that port outside the node. I ended up ssh'ing on the node and testing these locally.</li>
+<li>The nodes won't automatically check the latest version of the image if you update latest and push it to the repository. There is probably some command to force this or you need to name your versions explicitly.</li>
+</ul>

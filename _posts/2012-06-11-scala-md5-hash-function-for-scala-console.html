@@ -1,0 +1,34 @@
+---
+layout: post
+title: Scala - MD5 Hash function for Scala console
+date: 2012-06-11 13:56:17.000000000 +01:00
+type: post
+published: true
+status: publish
+categories:
+- Dev
+- jvm
+tags:
+- hash
+- md5
+- scala
+meta:
+  _original_post_id: ''
+  _original_import_author: Steven A
+  _edit_last: '46212493'
+author:
+  login: stevenwilliamalexander
+  email: steven.william.alexander@googlemail.com
+  display_name: stevenwilliamalexander
+  first_name: ''
+  last_name: ''
+excerpt: 'Handy function for generating MD5 hash for strings directly from Scala console,
+  just paste this into console: def md5Hash(text: String) : String = java.security.MessageDigest.getInstance("MD5").digest(text.getBytes()).map(0xFF
+  & _).map { "%02x".fo...'
+---
+<p>Handy function for generating MD5 hash for strings directly from Scala console, just paste this into console:
+<div>
+<p class="p1"><i>def md5Hash(text: String) : String = <span class="s1">java.security.</span><span class="s2">MessageDigest</span>.getInstance(<span class="s3">&quot;MD5&quot;</span>).digest(text.getBytes()).map(<span class="s4">0</span>xFF &amp; _).map { <span class="s3">&quot;%02x&quot;</span>.format(_) }.foldLeft(<span class="s3">&quot;&quot;</span>){_ + _}</i></p>
+<p class="p1"></p>
+<p class="p1">Then call md5Hash(&quot;Hash this Text!&quot;).</p>
+</div>
