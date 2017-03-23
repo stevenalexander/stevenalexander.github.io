@@ -15,7 +15,7 @@
 # in the templates via {{ site.myvariable }}.
 title: Steven Alexander
 #email: steven.william.alexander@googlemail.com
-description: "Technical blog with some philosophical and economic ramblings."
+description: "Extremely boring software development blog."
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: evilnevets
