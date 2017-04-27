@@ -9,12 +9,12 @@ categories: []
 tags: []
 ---
 <p align="center">
-  <img src="{{ site.baseurl }}/assets/devil-29973_640.png" alt="devil" title="devil"/>
+  <img src="{{ site.baseurl }}/assets/devil-29973_640.png" height="320" alt="devil" title="devil"/>
 </p>
 
 Last year I wrote a bit of a rant post ["Session data is evil"](http://stevenalexander.github.io/.net/dev/2016/05/16/session-data-is-evil.html) coming out of some projects which suffered from session related problems. Time and some experience trying to avoid sessions have softened my opinion, so I thought I would write a counter-point to that post.
 
-## Extremely hard to avoid state in user friendly applications
+## It's extremely hard to avoid state
 
 People think in states. They naturally work incremently, adding a little here, editing/removing a little there, not in large atomic chunks. The means they don't like large complex forms that require everything being entered/edited at once. They also expect little things that require state, remembering preferences and where they were in an application process. While it is possible to break down your application while avoiding state, it means increasing the complexity of your persistence and routing, adding complexity.
 
@@ -34,4 +34,4 @@ Large scale and PaaS applications may have to be much more careful, but there ar
 
 ## Conclusion
 
-Don't abandon session out of fear or fashion, it's a simple and extremely common approach for managing state in a world that demands it.
+Don't abandon session out of fear or fashion, it's a simple and extremely common approach for managing state in a world that demands it, just don't shove everything in there...
