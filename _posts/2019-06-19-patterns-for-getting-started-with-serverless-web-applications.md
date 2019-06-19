@@ -8,7 +8,7 @@ status: publish
 categories: []
 tags: []
 ---
-Starting out looking at serverless applications, it can be a bit intimidating for developers. You lose at lot of the built in functionality you are used to from traditiional web application frameworks and just getting something as simple as a basic web application running can be difficult.
+Starting out looking at serverless web applications, it can be a bit intimidating for developers. You lose at lot of the built in functionality you are used to from traditional web application frameworks and just getting something as simple as a basic web application running can be difficult.
 
 I'm writing this as a guide for how to get started creating a web application that runs serverless, showing some approaches you can take.
 
