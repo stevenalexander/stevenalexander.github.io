@@ -36,7 +36,7 @@ Recently I've been trying to use GitHub pages for documentation on a larger proj
 
 This was actually quite simple, it's added using a single page application put on a HTML page that uses JavaScript to call GitHub API, so you just need to add HTML/JS/Config to your static site and configure Netlify/GitHub authentication.
 
-1. Add [Netlify-CMS](https://www.netlifycms.org/docs/add-to-your-site/) to github pages repo, 
+1. Add [Netlify-CMS](https://www.netlifycms.org/docs/add-to-your-site/) to github pages repo
 2. Create your `/admin/config.yml` for your site and using GitHub for authentication/authorisation and your 
 3. Create a GitHub OAuth app used by your CMS 
 4. Setup [Netlify account](https://www.netlify.com/blog/2015/10/28/a-step-by-step-guide-jekyll-3.0-on-netlify/) and site settings
