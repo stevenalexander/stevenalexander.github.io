@@ -14,7 +14,7 @@ As the URL for this site gives away, this blog is hosted on [GitHub pages](https
 
 This is a very simple and popular way of publishing open source documentation for repos, as you can put your documentation inside a Git repo and GitHub will generate/host a static site for it. This is great for individual developers, but not so much for people who aren't comfortable with Git or Markdown. 
 
-Recently I've been trying to use GitHub pages for documentation on a larger project, but getting non-developers to update documentation has caused a large number of problems. To solve this people have suggested using a CMS system instead, but for cost/implementation/maintenance reasons I'd prefer not to. This lead me to investigate what CMS functions could you support purely with a static generated site. This lead me to [Netlify-CMS](https://www.netlifycms.org/).
+Recently I've been trying to use GitHub pages for documentation on a larger project, but getting non-developers to update documentation has caused a large number of problems. To solve this people have suggested using a CMS system instead, but for cost/implementation/maintenance reasons I'd prefer not to. This lead me to investigate what CMS functions could you support purely with a static generated site. This led me to [Netlify-CMS](https://www.netlifycms.org/).
 
 ## What does this give you?
 
