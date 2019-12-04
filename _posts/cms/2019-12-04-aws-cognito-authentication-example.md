@@ -10,17 +10,11 @@ status: publish
 
 Writing this after investigating [AWS Cognito](https://aws.amazon.com/cognito/) as a possible managed authentication and authorisation service to avoid needing to implement our own. Hopefully it should help people attempting to understand Cognito and how it could be integrated into their application.
 
-
-
 Cognito documentation generally focuses on the client side authentication functionality, useful in mobile application, but it has a lot of potential
-
-
 
 My example NodeJS application is [here](https://github.com/stevenalexander/node-aws-cognito-oauth2-example), with details on how to configure Cognito for OAuth 2.0 flow.
 
-
-
-Advantages for using Cognito:
+**Advantages for using Cognito:**
 
 * Managed service, less components to implement/monitor/scale
 * Easily configurable via portal, CLI and templates
@@ -35,14 +29,10 @@ Advantages for using Cognito:
   * Login/Signup UI forms (customisable)
   * Password reset
 
-
-
-Disadvantages:
+**Disadvantages:**
 
 * Less control over authentication/authorisation (limits to UI/flow customisation)
 * Potential for lock-in (cannot export users with passwords for migration)
-
-
 
 Below are some simplified diagrams showing how the integration can work.
 
@@ -56,9 +46,7 @@ Below are some simplified diagrams showing how the integration can work.
 
 Note that you can use the same Cognito User pool for both flows, so you call your API from your Web application passing the users JWT access token and use the same authentication/authorisation approach.
 
-
-
-Useful links:
+**Useful links:**
 
 * https://aws.amazon.com/cognito/
 * https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-authentication-flow.html
