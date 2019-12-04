@@ -10,7 +10,7 @@ status: publish
 
 Writing this after investigating [AWS Cognito](https://aws.amazon.com/cognito/) as a possible managed authentication and authorisation service to avoid needing to implement our own. Hopefully it should help people attempting to understand Cognito and how it could be integrated into their application.
 
-Cognito documentation generally focuses on the client side authentication functionality, useful in mobile application, but it has a lot of potential
+Cognito documentation generally focuses on the client side authentication functionality, useful in mobile application, but it has a lot of potential for server side authentication and authorisation as well.
 
 My example NodeJS application is [here](https://github.com/stevenalexander/node-aws-cognito-oauth2-example), with details on how to configure Cognito for OAuth 2.0 flow.
 
