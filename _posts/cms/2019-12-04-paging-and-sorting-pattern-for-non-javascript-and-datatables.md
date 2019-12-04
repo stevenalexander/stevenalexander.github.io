@@ -29,23 +29,25 @@ Datatables provides the quick AJAX redraw of the table with enhanced paging/sort
 To implement this I used a number of classes with generics/abstract methods to allow re-use for different pages/tables:
 
 <a href="https://github.com/stevenalexander/NetCorePartyEfExample/blob/master/WebApplicationParty/Models/PagedSortedViewModel.cs">PagedSortedViewModel</a> - model that can be used for both JSON serialization in Datatable server-side and rendering HTML table.
-<pre><code>   public class PagedSortedViewModel<TData> : IPagedSortedViewModel
+
+```
+public class PagedSortedViewModel : IPagedSortedViewModel
    {
        public int Draw { get; set; }
        ...
-       public IEnumerable<TData> Data { get; set; }
+       public IEnumerable Data { get; set; }
        ...
    }
-</code></pre>
+```
 
 <a href="https://github.com/stevenalexander/NetCorePartyEfExample/blob/master/WebApplicationParty/Controllers/PersonPagedSortedTableController.cs">PersonPagedSortedTableController</a> - controller with routes for both HTML GET and Datatables JSON call
 
-<pre><code>    
+```
 public class PersonPagedSortedTableController : Controller
     {
         ...
         [HttpGet]
-        public async Task<IActionResult> Index(int start = 0, int length = 10, string orderColumn = "Name", bool orderAscending = true)
+        public async Task Index(int start = 0, int length = 10, string orderColumn = "Name", bool orderAscending = true)
         {
             var model = await GetPagedSortedResultsAsViewModel(0, start, length, orderColumn, orderAscending);
 
@@ -53,7 +55,7 @@ public class PersonPagedSortedTableController : Controller
         }
 
         [HttpGet]
-        public async Task<JsonResult> DatatableJson(int draw = 0, int start = 0, int length = 10)
+        public async Task DatatableJson(int draw = 0, int start = 0, int length = 10)
         {
             var isAscending = Request.Query["order[0][dir]"] == "asc";
             int columnIdentifier = Convert.ToInt32(Request.Query["order[0][column]"]);
@@ -64,11 +66,11 @@ public class PersonPagedSortedTableController : Controller
             return Json(model);
         }
 
-        private async Task<PagedSortedViewModel<PersonResultItem>> GetPagedSortedResultsAsViewModel(int draw, int start, int length, string orderColumn, bool orderAscending)
+        private async Task<PagedSortedViewModel> GetPagedSortedResultsAsViewModel(int draw, int start, int length, string orderColumn, bool orderAscending)
         {
             var result = await _pagedSortedRepository.GetPagedSortedResults(start, length, orderColumn, orderAscending);
 
-            return new PagedSortedViewModel<PersonResultItem>
+            return new PagedSortedViewModel
             {
                 Draw = draw,
                 ...
@@ -86,14 +88,13 @@ public class PersonPagedSortedTableController : Controller
 
         }
     }
-</code></pre>
+```
 
 <a href="https://github.com/stevenalexander/NetCorePartyEfExample/blob/master/PartyData/Repositories/AbstractPagedSortedRepository.cs">AbstractPagedSortedRepository</a> - abstract repository class that has a number of virtual and abstract methods, wiring together the queries needed to return the paged/sorted result set so that minimal custom logic is needed for each different table.
-
-<pre><code>    
-public abstract class AbstractPagedSortedRepository<TResultItem> : IPagedSortedRepository<TResultItem>
+```
+public abstract class AbstractPagedSortedRepository : IPagedSortedRepository
     {
-        public async Task<PagedSortedResult<TResultItem>> GetPagedSortedResults(int start, int length, string orderColumn, bool orderAscending)
+        public async Task<PagedSortedResult> GetPagedSortedResults(int start, int length, string orderColumn, bool orderAscending)
         {
             var innerJoinQuery = GetQuery();
 
@@ -109,7 +110,7 @@ public abstract class AbstractPagedSortedRepository<TResultItem> : IPagedSortedR
 
             var data = await pagedSortedWhereQuery.ToListAsync();
 
-            return new PagedSortedResult<TResultItem>
+            return new PagedSortedResult
             {
                 recordsTotal = recordsTotal,
                 recordsFiltered = recordsFiltered,
@@ -118,20 +119,22 @@ public abstract class AbstractPagedSortedRepository<TResultItem> : IPagedSortedR
         }
         ...
     }
-</code></pre>
+```
 
 <a href="https://github.com/stevenalexander/NetCorePartyEfExample/blob/master/PartyData/Repositories/PersonPagedSortedRepository.cs">PersonPagedSortedRepository</a> - Implementation of the abstract repository for a table showing joined results of the Person/Party entities.
-<pre><code>public class PersonPagedSortedRepository : AbstractPagedSortedRepository<PersonResultItem>
+
+```
+public class PersonPagedSortedRepository : AbstractPagedSortedRepository
     {
         ...
-        protected override IQueryable<PersonResultItem> GetQuery()
+        protected override IQueryable GetQuery()
         {
             return from p in _partyDbContext.Parties
                    join o in _partyDbContext.Persons on p.PartyId equals o.PartyId
                    select new PersonResultItem { PartyId = p.PartyId, Name = p.Name, EmailAddress = o.EmailAddress, DateOfBirth = o.DateOfBirth, DateCreated = p.DateCreated };
         }
 
-        protected override IQueryable<PersonResultItem> GetSortedWhereQuery(IQueryable<PersonResultItem> whereQuery, string orderColumn, bool orderAscending)
+        protected override IQueryable GetSortedWhereQuery(IQueryable whereQuery, string orderColumn, bool orderAscending)
         {
             switch (orderColumn)
             {
@@ -141,7 +144,7 @@ public abstract class AbstractPagedSortedRepository<TResultItem> : IPagedSortedR
             }
         }
     }
-</code></pre>
+```
 
 The <a href="https://github.com/stevenalexander/NetCorePartyEfExample/blob/master/WebApplicationParty/Views/PersonPagedSortedTable/Index.cshtml">view</a> renders the table, and has Javascript to use Datatables if Javascript is enabled (hiding HTML paging/sorting controls).
 
@@ -153,3 +156,4 @@ Links:
 	<li>https://docs.microsoft.com/en-us/ef/core/modeling/relationships</li>
 	<li>https://docs.microsoft.com/en-us/dotnet/csharp/linq/perform-grouped-joins</li>
 </ul>
+ 
