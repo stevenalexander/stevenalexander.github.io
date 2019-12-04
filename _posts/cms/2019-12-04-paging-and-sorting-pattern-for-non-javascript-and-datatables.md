@@ -37,8 +37,11 @@ To implement this I used a number of classes with generics/abstract methods to a
        ...
    }
 </code></pre>
+
 <a href="https://github.com/stevenalexander/NetCorePartyEfExample/blob/master/WebApplicationParty/Controllers/PersonPagedSortedTableController.cs">PersonPagedSortedTableController</a> - controller with routes for both HTML GET and Datatables JSON call
-<pre><code>    public class PersonPagedSortedTableController : Controller
+
+<pre><code>    
+public class PersonPagedSortedTableController : Controller
     {
         ...
         [HttpGet]
@@ -84,8 +87,11 @@ To implement this I used a number of classes with generics/abstract methods to a
         }
     }
 </code></pre>
+
 <a href="https://github.com/stevenalexander/NetCorePartyEfExample/blob/master/PartyData/Repositories/AbstractPagedSortedRepository.cs">AbstractPagedSortedRepository</a> - abstract repository class that has a number of virtual and abstract methods, wiring together the queries needed to return the paged/sorted result set so that minimal custom logic is needed for each different table.
-<pre><code>    public abstract class AbstractPagedSortedRepository<TResultItem> : IPagedSortedRepository<TResultItem>
+
+<pre><code>    
+public abstract class AbstractPagedSortedRepository<TResultItem> : IPagedSortedRepository<TResultItem>
     {
         public async Task<PagedSortedResult<TResultItem>> GetPagedSortedResults(int start, int length, string orderColumn, bool orderAscending)
         {
@@ -113,6 +119,7 @@ To implement this I used a number of classes with generics/abstract methods to a
         ...
     }
 </code></pre>
+
 <a href="https://github.com/stevenalexander/NetCorePartyEfExample/blob/master/PartyData/Repositories/PersonPagedSortedRepository.cs">PersonPagedSortedRepository</a> - Implementation of the abstract repository for a table showing joined results of the Person/Party entities.
 <pre><code>public class PersonPagedSortedRepository : AbstractPagedSortedRepository<PersonResultItem>
     {
@@ -135,6 +142,7 @@ To implement this I used a number of classes with generics/abstract methods to a
         }
     }
 </code></pre>
+
 The <a href="https://github.com/stevenalexander/NetCorePartyEfExample/blob/master/WebApplicationParty/Views/PersonPagedSortedTable/Index.cshtml">view</a> renders the table, and has Javascript to use Datatables if Javascript is enabled (hiding HTML paging/sorting controls).
 
 Links:
