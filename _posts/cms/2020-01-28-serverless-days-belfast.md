@@ -15,7 +15,8 @@ Couple of random things I picked up:
 * Romba have a x100 spike in requests on Christmas day
 * I should listen to [Serverless Chats podcast](https://www.serverlesschats.com/) and follow Jeremy Daly
 * Difference in Serverless and Managed Service is not needing to think about capacity management (e.g. your AWS managed Redis is not Serverless)
-* Organisations are using Serverless now all over the place
+* Organisations are using Serverless now all over the place, it's not fringe now
+* How it lowers the technical and operational barriers to production level deployments is a big deal (Farrah Campbells talk)
 * Think about your code as a liability (code as technical debt)
 * Machines are getting better at "talking in human", this will change how we interact with services (e.g. ML chat agents), "Treat users as Pets not Cattle"
 * I should look at DDD and think about how to approach design in this new world
