@@ -18,4 +18,4 @@ One of the advantages of the Serverless approach is the ability to break up your
 
 Fortunately there are tools to help create API Documentation, [OpenAPI specification](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md) and [JSON Schema](https://json-schema.org/). The Serverless hosting providers and framework developers are integrating these into their tools to allow developers to quickly create API Documentation and offload related functionality to them.
 
-I've created an example API which uses the [Serverless Framework](https://serverless.com/) and AWS API Gateway to document itself and handle request validation at the API Gateway layer.
+I've created an example API which uses the [Serverless Framework](https://serverless.com/) and AWS API Gateway to document itself and handle request validation at the API Gateway layer using [JSON Schema](AWS Blog - How to remove boilerplate validation logic in your REST APIs with Amazon API Gateway request validation).
